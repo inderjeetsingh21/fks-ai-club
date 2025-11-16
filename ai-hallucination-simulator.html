@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Hallucination Simulator - Understanding & Preventing False Information</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d1b69 0%, #8b3a62 50%, #f77737 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+
+        .header p {
+            font-size: 1.5em;
+            opacity: 0.95;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            margin-bottom: 20px;
+        }
+
+        .panel h2 {
+            color: #2d1b69;
+            margin-bottom: 20px;
+            font-size: 2em;
+            border-bottom: 3px solid #2d1b69;
+            padding-bottom: 12px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .danger-box {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-left: 5px solid #f44336;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+
+        .danger-box strong {
+            color: #c62828;
+            font-size: 1.1em;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 5px solid #2196F3;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+
+        .info-box strong {
+            color: #1565C0;
+            font-size: 1.1em;
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-left: 5px solid #28a745;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .scenario-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .scenario-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+            position: relative;
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .scenario-card.selected {
+            border-color: #2d1b69;
+            background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+        }
+
+        .scenario-card h3 {
+            color: #2d1b69;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .hallucination-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #f44336;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .response-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            min-height: 200px;
+            position: relative;
+        }
+
+        .response-box.bad {
+            border: 3px solid #f44336;
+        }
+
+        .response-box.good {
+            border: 3px solid #28a745;
+        }
+
+        .response-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .response-header h3 {
+            color: #2d1b69;
+            font-size: 1.3em;
+        }
+
+        .response-content {
+            line-height: 1.8;
+            color: #333;
+            font-size: 1.05em;
+        }
+
+        .hallucination-highlight {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border-bottom: 2px solid #f44336;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .hallucination-highlight:hover {
+            background: #f44336;
+            color: white;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: #2d2d2d;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            max-width: 250px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .hallucination-highlight:hover .tooltip {
+            display: block;
+            bottom: 100%;
+            left: 0;
+            margin-bottom: 5px;
+        }
+
+        .confidence-meter {
+            margin: 20px 0;
+        }
+
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .confidence-bar-container {
+            height: 40px;
+            background: #e0e0e0;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .confidence-bar {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: all 0.5s ease;
+        }
+
+        .confidence-bar.low {
+            background: linear-gradient(90deg, #f44336 0%, #e53935 100%);
+        }
+
+        .confidence-bar.medium {
+            background: linear-gradient(90deg, #ffc107 0%, #ffb300 100%);
+        }
+
+        .confidence-bar.high {
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn-primary {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #f44336 0%, #e53935 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn-success {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .visualization {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .thought-process {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .thought-step {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .thought-step-label {
+            font-weight: bold;
+            color: #2d1b69;
+            margin-bottom: 8px;
+        }
+
+        .thought-step-content {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .uncertainty-indicator {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .uncertainty-high {
+            background: #ffebee;
+            color: #c62828;
+            border: 2px solid #f44336;
+        }
+
+        .uncertainty-medium {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffc107;
+        }
+
+        .uncertainty-low {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+
+        .prompt-editor {
+            margin: 20px 0;
+        }
+
+        .prompt-editor label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .prompt-editor textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .prompt-editor textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .prevention-techniques {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .technique-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #28a745;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .technique-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .technique-card h4 {
+            color: #2d1b69;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .example-comparison {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .example-bad {
+            color: #c62828;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #ffebee;
+            border-radius: 6px;
+        }
+
+        .example-good {
+            color: #155724;
+            padding: 10px;
+            background: #d4edda;
+            border-radius: 6px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2d1b69;
+            margin: 10px 0;
+        }
+
+        .stat-value.bad {
+            color: #f44336;
+        }
+
+        .stat-value.good {
+            color: #28a745;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+            margin: 20px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #2d1b69 0%, #f77737 100%);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -31px;
+            top: 25px;
+            width: 15px;
+            height: 15px;
+            background: #2d1b69;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #2d1b69;
+        }
+
+        .cause-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 1400px) {
+            .grid-2, .comparison-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .interactive-demo {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ AI Hallucination Simulator</h1>
+            <p>Understanding When & Why AI Makes Up False Information</p>
+        </div>
+
+        <!-- Introduction -->
+        <div class="panel">
+            <h2>🎭 What is AI Hallucination?</h2>
+            
+            <div class="danger-box">
+                <strong>⚠️ AI Hallucination Definition:</strong><br><br>
+                When an AI confidently generates information that is factually incorrect, made-up, or not grounded in its training data. The AI essentially "makes things up" while sounding convincing - like a person confidently giving wrong directions!
+            </div>
+
+            <div class="grid-2">
+                <div class="info-box">
+                    <strong>Why This Happens:</strong><br><br>
+                    • AI predicts "likely" next words, not "true" words<br>
+                    • Pattern matching can fill gaps with plausible-sounding nonsense<br>
+                    • No fact-checking mechanism built in<br>
+                    • Training data may contain errors or contradictions<br>
+                    • AI doesn't "know" when it doesn't know something<br>
+                    • Pressure to generate complete responses
+                </div>
+
+                <div class="warning-box">
+                    <strong>Real-World Impact:</strong><br><br>
+                    • Legal cases citing fake court cases<br>
+                    • Medical advice with invented facts<br>
+                    • Historical "facts" that never happened<br>
+                    • Fake citations and references<br>
+                    • Made-up statistics and numbers<br>
+                    • Non-existent books, movies, people
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Hallucination Rate</div>
+                    <div class="stat-value bad">15-20%</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">In unsupervised queries</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">With Good Prompts</div>
+                    <div class="stat-value good">3-5%</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Significant reduction</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">User Awareness</div>
+                    <div class="stat-value bad">~30%</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Most don't verify!</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Confidence Level</div>
+                    <div class="stat-value bad">High</div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Even when wrong!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scenario Selector -->
+        <div class="panel">
+            <h2>🔍 Choose a Hallucination Scenario</h2>
+            
+            <div class="scenario-selector">
+                <div class="scenario-card selected" onclick="selectScenario('fake-facts')" id="scenario-fake-facts">
+                    <span class="hallucination-badge">HIGH RISK</span>
+                    <h3>📚 Fake Facts & Citations</h3>
+                    <p>AI invents non-existent books, studies, or historical events</p>
+                </div>
+
+                <div class="scenario-card" onclick="selectScenario('false-people')" id="scenario-false-people">
+                    <span class="hallucination-badge">MEDIUM RISK</span>
+                    <h3>👤 Non-Existent People</h3>
+                    <p>Creating biographies of people who never existed</p>
+                </div>
+
+                <div class="scenario-card" onclick="selectScenario('wrong-dates')" id="scenario-wrong-dates">
+                    <span class="hallucination-badge">HIGH RISK</span>
+                    <h3>📅 Wrong Dates & Events</h3>
+                    <p>Mixing up timelines and historical facts</p>
+                </div>
+
+                <div class="scenario-card" onclick="selectScenario('fake-stats')" id="scenario-fake-stats">
+                    <span class="hallucination-badge">VERY HIGH RISK</span>
+                    <h3>📊 Made-Up Statistics</h3>
+                    <p>Generating plausible but false numbers</p>
+                </div>
+
+                <div class="scenario-card" onclick="selectScenario('technical-errors')" id="scenario-technical-errors">
+                    <span class="hallucination-badge">MEDIUM RISK</span>
+                    <h3>💻 Technical Misinformation</h3>
+                    <p>Wrong code, APIs, or technical details</p>
+                </div>
+
+                <div class="scenario-card" onclick="selectScenario('creative-filling')" id="scenario-creative-filling">
+                    <span class="hallucination-badge">HIGH RISK</span>
+                    <h3>🎨 Creative Gap Filling</h3>
+                    <p>Inventing details when information is vague</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Demo -->
+        <div class="panel">
+            <h2>🎮 Interactive Hallucination Demo</h2>
+            
+            <div class="interactive-demo">
+                <h3 style="color: #2d1b69; margin-bottom: 20px;">Current Scenario: <span id="currentScenario">Fake Facts & Citations</span></h3>
+                
+                <div class="demo-controls">
+                    <button class="btn-danger" onclick="generateBadPrompt()">
+                        ❌ Generate with BAD Prompt
+                    </button>
+                    <button class="btn-success" onclick="generateGoodPrompt()">
+                        ✅ Generate with GOOD Prompt
+                    </button>
+                    <button class="btn-primary" onclick="showComparison()">
+                        ⚖️ Show Side-by-Side
+                    </button>
+                </div>
+
+                <div id="demoResults" style="display: none;">
+                    <!-- Results will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Panel -->
+        <div class="panel" id="comparisonPanel" style="display: none;">
+            <h2>⚖️ Bad Prompt vs Good Prompt</h2>
+            
+            <div class="comparison-container">
+                <!-- Bad Response -->
+                <div class="response-box bad">
+                    <div class="response-header">
+                        <span style="font-size: 2em;">❌</span>
+                        <div>
+                            <h3>Bad Prompt Response</h3>
+                            <p style="color: #666; font-size: 0.9em;">Vague, open-ended question</p>
+                        </div>
+                    </div>
+                    <div id="badPromptText" style="padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 15px; font-family: monospace;">
+                        Loading...
+                    </div>
+                    <div class="response-content" id="badResponse">
+                        Loading...
+                    </div>
+                    <div class="confidence-meter">
+                        <div class="confidence-label">
+                            <span>AI Confidence</span>
+                            <span id="badConfidence">85%</span>
+                        </div>
+                        <div class="confidence-bar-container">
+                            <div class="confidence-bar high" id="badConfidenceBar" style="width: 85%;">
+                                High Confidence (but wrong!)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Good Response -->
+                <div class="response-box good">
+                    <div class="response-header">
+                        <span style="font-size: 2em;">✅</span>
+                        <div>
+                            <h3>Good Prompt Response</h3>
+                            <p style="color: #666; font-size: 0.9em;">Specific, well-constrained question</p>
+                        </div>
+                    </div>
+                    <div id="goodPromptText" style="padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 15px; font-family: monospace;">
+                        Loading...
+                    </div>
+                    <div class="response-content" id="goodResponse">
+                        Loading...
+                    </div>
+                    <div class="confidence-meter">
+                        <div class="confidence-label">
+                            <span>AI Confidence</span>
+                            <span id="goodConfidence">65%</span>
+                        </div>
+                        <div class="confidence-bar-container">
+                            <div class="confidence-bar medium" id="goodConfidenceBar" style="width: 65%;">
+                                Appropriate uncertainty
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <strong>✅ Why the Good Prompt Works Better:</strong><br>
+                <div id="whyBetter" style="margin-top: 15px; line-height: 1.8;">
+                    Loading...
+                </div>
+            </div>
+        </div>
+
+        <!-- Why Hallucinations Happen -->
+        <div class="panel">
+            <h2>🔬 Why Do Hallucinations Happen?</h2>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="cause-icon">🎲</div>
+                    <h4 style="color: #2d1b69; margin-bottom: 10px;">1. Pattern Completion Over Truth</h4>
+                    <p>AI is trained to predict the most likely next word, NOT to verify facts. If the pattern suggests "The Eiffel Tower is in London" completes well, it might generate that!</p>
+                    <div class="example-comparison">
+                        <div class="thought-step">
+                            <div class="thought-step-label">AI's Thought Process:</div>
+                            <div class="thought-step-content">
+                                "The user asked about a famous tower... Eiffel Tower is famous... towers are in cities... London has famous buildings... this pattern fits!"
+                                <span class="uncertainty-indicator uncertainty-high">⚠️ No fact-check</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <h4 style="color: #2d1b69; margin-bottom: 10px;">2. Training Data Gaps</h4>
+                    <p>When asked about something not well-represented in training data, AI fills the gap with plausible-sounding content.</p>
+                    <div class="example-comparison">
+                        <div class="example-bad">
+                            <strong>Example:</strong> "Who won the 2024 Nobel Prize in Physics?"<br>
+                            If training data ends in 2023, AI might invent a name!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <h4 style="color: #2d1b69; margin-bottom: 10px;">3. Overconfident Generation</h4>
+                    <p>AI doesn't have a built-in "I don't know" mechanism. It's trained to always generate responses, leading to false confidence.</p>
+                    <div class="warning-box" style="margin-top: 15px;">
+                        <strong>Problem:</strong> The model generates responses with the same confident tone whether it's 100% sure or completely guessing!
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <h4 style="color: #2d1b69; margin-bottom: 10px;">4. Context Misunderstanding</h4>
+                    <p>Sometimes AI misinterprets what you're asking and generates a response to a different question.</p>
+                    <div class="example-comparison">
+                        <div class="example-bad">
+                            <strong>You ask:</strong> "What did Apple announce yesterday?"<br>
+                            <strong>AI thinks:</strong> "General Apple news" → generates old/fake news
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <h4 style="color: #2d1b69; margin-bottom: 10px;">5. Conflating Similar Concepts</h4>
+                    <p>AI might mix up similar names, dates, or concepts from its training data.</p>
+                    <div class="example-comparison">
+                        <div class="example-bad">
+                            <strong>Example:</strong> Mixing up "Stephen King" and "Martin Luther King"<br>
+                            Or confusing dates of similar historical events
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <h4 style="color: #2d1b69; margin-bottom: 10px;">6. Pressure to Complete Responses</h4>
+                    <p>When given incomplete or ambiguous information, AI tries to "help" by filling in details - often incorrectly.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prevention Techniques -->
+        <div class="panel">
+            <h2>🛡️ How to Reduce Hallucinations Through Better Prompting</h2>
+            
+            <div class="prevention-techniques">
+                <div class="technique-card">
+                    <h4>1. Ask for Sources</h4>
+                    <p style="margin-bottom: 15px;">Request citations or sources to force the AI to be more careful.</p>
+                    <div class="example-comparison">
+                        <div class="example-bad">
+                            ❌ "Tell me about quantum entanglement"
+                        </div>
+                        <div class="example-good">
+                            ✅ "Explain quantum entanglement and mention what sources this information comes from"
+                        </div>
+                    </div>
+                </div>
+
+                <div class="technique-card">
+                    <h4>2. Request Uncertainty Acknowledgment</h4>
+                    <p style="margin-bottom: 15px;">Explicitly ask the AI to admit when it's unsure.</p>
+                    <div class="example-comparison">
+                        <div class="example-bad">
+                            ❌ "Who won the 2024 Olympics marathon?"
+                        </div>
+                        <div class="example-good">
+                            ✅ "Who won the 2024 Olympics marathon? If you're not certain, please say so."
+                        </div>
+                    </div>
+                </div>
+
+                <div class="technique-card">
+                    <h4>3. Provide Context & Constraints</h4>
+                    <p style="margin-bottom: 15px;">Give the AI boundaries to work within.</p>
+                    <div class="example-comparison">
+                        <div class="example-bad">
+                            ❌ "What's the history of AI?"
+                        </div>
+                        <div class="example-good">
+                            ✅ "Summarize major AI milestones between 1950-2020, stick to well-documented events"
+                        </div>
+                    </div>
+                </div>
+
+                <div class="technique-card">
+                    <h4>4. Ask for Step-by-Step Reasoning</h4>
+                    <p style="margin-bottom: 15px;">Force the AI to show its work.</p>
+                    <div class="example-comparison">
+                        <div class="example-bad">
+                            ❌ "Calculate 15% tip on $87.50"
+                        </div>
+                        <div class="example-good">
+                            ✅ "Calculate 15% tip on $87.50, show your calculation steps"
+                        </div>
+                    </div>
+                </div>
+
+                <div class="technique-card">
+                    <h4>5. Verify-Before-Answer Pattern</h4>
+                    <p style="margin-bottom: 15px;">Ask AI to verify its knowledge first.</p>
+                    <div class="example-comparison">
+                        <div class="example-bad">
+                            ❌ "What did Einstein say about quantum mechanics?"
+                        </div>
+                        <div class="example-good">
+                            ✅ "Do you have reliable information about Einstein's views on quantum mechanics? If yes, what did he say?"
+                        </div>
+                    </div>
+                </div>
+
+                <div class="technique-card">
+                    <h4>6. Use Factual Anchors</h4>
+                    <p style="margin-bottom: 15px;">Provide known facts to anchor the response.</p>
+                    <div class="example-comparison">
+                        <div class="example-bad">
+                            ❌ "Tell me about the Space Shuttle Challenger"
+                        </div>
+                        <div class="example-good">
+                            ✅ "The Space Shuttle Challenger exploded in 1986. What were the causes?"
+                        </div>
+                    </div>
+                </div>
+
+                <div class="technique-card">
+                    <h4>7. Request Multiple Perspectives</h4>
+                    <p style="margin-bottom: 15px;">Ask for different viewpoints to catch inconsistencies.</p>
+                    <div class="example-comparison">
+                        <div class="example-bad">
+                            ❌ "Is nuclear energy safe?"
+                        </div>
+                        <div class="example-good">
+                            ✅ "Present both arguments for and against nuclear energy safety"
+                        </div>
+                    </div>
+                </div>
+
+                <div class="technique-card">
+                    <h4>8. Use System Prompts</h4>
+                    <p style="margin-bottom: 15px;">Set behavior guidelines upfront.</p>
+                    <div class="example-comparison">
+                        <div class="example-good">
+                            ✅ "You are a fact-checker. Only state information you're confident about. For anything uncertain, say 'I'm not sure' rather than guessing."
+                        </div>
+                    </div>
+                </div>
+
+                <div class="technique-card">
+                    <h4>9. Limit Open-Ended Creativity</h4>
+                    <p style="margin-bottom: 15px;">Be specific about what you want.</p>
+                    <div class="example-comparison">
+                        <div class="example-bad">
+                            ❌ "Tell me everything about Python"
+                        </div>
+                        <div class="example-good">
+                            ✅ "List the top 5 Python data structures with 1 sentence each"
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visualization of Thought Process -->
+        <div class="panel">
+            <h2>🧠 AI's Thought Process During Hallucination</h2>
+            
+            <div class="visualization">
+                <h3 style="color: #2d1b69; margin-bottom: 20px;">Example: "Who wrote the book 'The Digital Mindset' published in 2019?"</h3>
+                
+                <div class="thought-process">
+                    <div class="thought-step">
+                        <div class="thought-step-label">Step 1: Pattern Recognition</div>
+                        <div class="thought-step-content">
+                            User is asking about a book... title... author... year...
+                            <span class="uncertainty-indicator uncertainty-low">✓ Pattern recognized</span>
+                        </div>
+                    </div>
+
+                    <div class="thought-step">
+                        <div class="thought-step-label">Step 2: Knowledge Search</div>
+                        <div class="thought-step-content">
+                            Searching training data for "The Digital Mindset 2019"...
+                            <span class="uncertainty-indicator uncertainty-high">⚠️ No exact match found</span>
+                        </div>
+                    </div>
+
+                    <div class="thought-step">
+                        <div class="thought-step-label">Step 3: Similar Pattern Matching</div>
+                        <div class="thought-step-content">
+                            Found similar titles: "Digital Minimalism" by Cal Newport, "The Innovator's Mindset" by George Couros...
+                            <span class="uncertainty-indicator uncertainty-medium">~ Partial matches</span>
+                        </div>
+                    </div>
+
+                    <div class="thought-step">
+                        <div class="thought-step-label">Step 4: Gap Filling (DANGER ZONE)</div>
+                        <div class="thought-step-content">
+                            No exact match, but the pattern suggests I should provide an author name...
+                            "The Digital Mindset" sounds like a business/tech book...
+                            Common authors in this space: Malcolm Gladwell, Daniel Pink, Adam Grant...
+                            <span class="uncertainty-indicator uncertainty-high">🚨 Guessing ahead!</span>
+                        </div>
+                    </div>
+
+                    <div class="thought-step">
+                        <div class="thought-step-label">Step 5: Confident Generation (THE PROBLEM)</div>
+                        <div class="thought-step-content">
+                            <strong style="color: #f44336;">HALLUCINATION:</strong> "The Digital Mindset was written by Adam Grant in 2019."
+                            <span class="uncertainty-indicator uncertainty-high">❌ Made up!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="danger-box">
+                    <strong>🎭 The Hallucination:</strong><br>
+                    The AI created a plausible-sounding answer by combining:<br>
+                    • A real author name (Adam Grant)<br>
+                    • A real year (2019)<br>
+                    • A real-sounding book title<br>
+                    But the book doesn't exist! This is classic hallucination.
+                </div>
+            </div>
+        </div>
+
+        <!-- Real Examples -->
+        <div class="panel">
+            <h2>📰 Real-World Hallucination Examples</h2>
+            
+            <div class="grid-2">
+                <div class="danger-box">
+                    <strong>🏛️ Legal Case Example:</strong><br><br>
+                    A lawyer used ChatGPT to write a brief that cited several legal cases.<br><br>
+                    <strong>Problem:</strong> The cases didn't exist!<br>
+                    ChatGPT invented case names, citations, and legal precedents.<br><br>
+                    <strong>Result:</strong> Sanctions against the lawyer for submitting fake citations.
+                </div>
+
+                <div class="danger-box">
+                    <strong>📚 Academic Citation Example:</strong><br><br>
+                    Student asked for research papers on a topic.<br><br>
+                    <strong>Problem:</strong> AI generated convincing-looking citations:<br>
+                    • Fake author names<br>
+                    • Non-existent journals<br>
+                    • Made-up DOI numbers<br>
+                    • Plausible abstracts<br><br>
+                    <strong>Result:</strong> Failed assignment, academic integrity issues.
+                </div>
+
+                <div class="danger-box">
+                    <strong>🏥 Medical Information Example:</strong><br><br>
+                    Patient asked about drug interactions.<br><br>
+                    <strong>Problem:</strong> AI invented side effects and contraindications that weren't real.<br><br>
+                    <strong>Danger:</strong> Incorrect medical information can be life-threatening!
+                </div>
+
+                <div class="danger-box">
+                    <strong>📊 Statistical Hallucination:</strong><br><br>
+                    "What percentage of people have brown eyes?"<br><br>
+                    <strong>Problem:</strong> AI confidently stated "47%" when the real number is closer to 79%.<br><br>
+                    Made-up statistics sound authoritative!
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Takeaways -->
+        <div class="panel">
+            <h2>🎓 Key Takeaways for Students</h2>
+            
+            <div class="success-box">
+                <strong>✅ What You Should Remember:</strong><br><br>
+                
+                <strong>1. AI is NOT a Search Engine</strong><br>
+                It doesn't look up facts - it predicts likely text patterns. This is fundamentally different from Google!<br><br>
+                
+                <strong>2. Confidence ≠ Accuracy</strong><br>
+                AI can be 100% wrong while sounding 100% confident. Never trust based on tone alone.<br><br>
+                
+                <strong>3. Always Verify Important Information</strong><br>
+                • Check citations exist<br>
+                • Verify statistics from original sources<br>
+                • Cross-reference names, dates, events<br>
+                • Be especially careful with: medical, legal, financial advice<br><br>
+                
+                <strong>4. Better Prompts = Fewer Hallucinations</strong><br>
+                You can dramatically reduce hallucinations by:<br>
+                • Being specific<br>
+                • Asking for sources<br>
+                • Requesting uncertainty acknowledgment<br>
+                • Providing context<br><br>
+                
+                <strong>5. Hallucinations Are a Feature, Not a Bug</strong><br>
+                This is how language models work - they complete patterns. Until AI has true fact-checking built in, hallucinations will happen.<br><br>
+                
+                <strong>6. Use AI as a Starting Point, Not the Final Answer</strong><br>
+                Great for brainstorming, drafting, explaining concepts - but always fact-check before trusting completely!
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ Critical Thinking is Essential:</strong><br><br>
+                The existence of AI hallucinations makes critical thinking more important than ever. Don't outsource your judgment to AI!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScenarioData = null;
+
+        const scenarios = {
+            'fake-facts': {
+                name: 'Fake Facts & Citations',
+                badPrompt: 'Tell me about the book "The AI Revolution" by Dr. Sarah Mitchell published in 2019',
+                goodPrompt: 'I\'m looking for information about a book called "The AI Revolution" supposedly by Dr. Sarah Mitchell (2019). Can you verify if this book exists? If not, please say so rather than making up details.',
+                badResponse: 'The AI Revolution by Dr. Sarah Mitchell, published in 2019 by Cambridge University Press, is a comprehensive analysis of how artificial intelligence is transforming society. The book consists of 12 chapters covering topics from machine learning fundamentals to ethical implications. Dr. Mitchell, a professor at Stanford University, draws on her 20 years of experience in AI research. The book has been cited over 5,000 times and won the prestigious Turing Book Award in 2020. Key insights include her framework for "ethical AI deployment" and the concept of "algorithmic transparency."',
+                goodResponse: 'I don\'t have reliable information about a book called "The AI Revolution" by Dr. Sarah Mitchell published in 2019. I cannot verify that this book exists or that there is a Dr. Sarah Mitchell who is a prominent AI researcher. If you\'re looking for books on AI, I can recommend some well-known titles that I can verify, such as "Life 3.0" by Max Tegmark or "Superintelligence" by Nick Bostrom. Would you like recommendations for verified AI books instead?',
+                hallucinations: [
+                    'Cambridge University Press - Publisher doesn\'t exist for this book',
+                    '12 chapters - Invented structure',
+                    'Stanford University professor - Fake affiliation',
+                    '20 years of experience - Made up credential',
+                    '5,000 citations - Fabricated statistic',
+                    'Turing Book Award - Non-existent award',
+                    'ethical AI deployment framework - Invented concept'
+                ],
+                whyBetter: '• Explicitly asks for verification<br>• Gives permission to say "I don\'t know"<br>• Asks for acknowledgment if information is uncertain<br>• Prevents the AI from filling gaps with plausible-sounding fiction<br>• Results in honest admission rather than confident lies',
+                badConfidence: 90,
+                goodConfidence: 85
+            },
+            'false-people': {
+                name: 'Non-Existent People',
+                badPrompt: 'Who is Dr. Marcus Chen and what are his contributions to neuroscience?',
+                goodPrompt: 'I\'m trying to verify information about someone named Dr. Marcus Chen in neuroscience. Can you confirm if this is a real person? If you don\'t have verified information, please tell me rather than guessing.',
+                badResponse: 'Dr. Marcus Chen is a renowned neuroscientist at Johns Hopkins University, specializing in neural plasticity and memory formation. Born in Taiwan in 1975, he completed his PhD at MIT in 2003. His groundbreaking 2018 paper in Nature Neuroscience on "Synaptic Reorganization in Adult Brains" revolutionized our understanding of neuroplasticity. He has received the Kavli Prize in Neuroscience (2021) and leads a research team of 25 scientists. His lab has secured over $50 million in NIH funding, and he serves on the editorial board of three major neuroscience journals.',
+                goodResponse: 'I don\'t have verified information about a specific Dr. Marcus Chen in neuroscience. While there may be neuroscientists with that name, I cannot confirm details about their work, affiliations, or contributions without risking providing false information. If you\'re researching a specific person, I recommend checking: academic institution websites, Google Scholar profiles, PubMed for publications, or professional society memberships. Can I help you with a different neuroscience question instead?',
+                hallucinations: [
+                    'Johns Hopkins University - Unverified affiliation',
+                    'Born in Taiwan 1975 - Invented biography',
+                    'MIT PhD 2003 - Fake credential',
+                    '2018 Nature Neuroscience paper - Non-existent publication',
+                    'Kavli Prize 2021 - Made up award',
+                    '$50 million NIH funding - Fabricated statistic',
+                    'Team of 25 scientists - Invented detail'
+                ],
+                whyBetter: '• Asks for verification upfront<br>• Explicitly requests admission if uncertain<br>• Prevents biographical invention<br>• Results in honest "I don\'t know" response<br>• Provides helpful alternatives for verification',
+                badConfidence: 88,
+                goodConfidence: 60
+            },
+            'wrong-dates': {
+                name: 'Wrong Dates & Events',
+                badPrompt: 'When did the first iPhone launch and what features did it have?',
+                goodPrompt: 'When did the first iPhone launch? Please only include details you\'re confident are accurate, and acknowledge if you\'re uncertain about specific features or dates.',
+                badResponse: 'The first iPhone launched on January 9, 2008, at the Macworld Conference in San Francisco. It featured a revolutionary 4.5-inch touchscreen, 3G connectivity, 8GB and 16GB storage options, a 5-megapixel camera, GPS navigation, and the first version of the App Store pre-installed. Steve Jobs famously called it "three devices in one: a phone, an iPod, and an internet communicator." The original price was $599 for the 8GB model. Initial sales reached 2 million units in the first month.',
+                goodResponse: 'The first iPhone was announced by Steve Jobs on January 9, 2007 (not 2008), and it went on sale in June 2007. Key features included a 3.5-inch touchscreen (I\'m confident about this), 4GB or 8GB storage, a 2-megapixel camera, and importantly, it did NOT have 3G connectivity at launch - that came with the iPhone 3G in 2008. There was also no App Store at launch; that was introduced in July 2008. I\'m less certain about exact first-month sales figures, so I won\'t state a specific number. The starting price was $499 for the 4GB model.',
+                hallucinations: [
+                    'January 9, 2008 - Wrong year (should be 2007)',
+                    '4.5-inch screen - Wrong size (3.5 inches)',
+                    '3G connectivity - Wrong (was only 2G/EDGE)',
+                    '5-megapixel camera - Wrong (2 megapixels)',
+                    'GPS navigation - Wrong (no GPS in first iPhone)',
+                    'App Store pre-installed - Wrong (came later)',
+                    '2 million first month - Invented statistic'
+                ],
+                whyBetter: '• Asks for confidence levels<br>• Requests acknowledgment of uncertainty<br>• Results in corrected dates<br>• AI admits when less certain (sales figures)<br>• Provides accurate feature list with caveats',
+                badConfidence: 92,
+                goodConfidence: 75
+            },
+            'fake-stats': {
+                name: 'Made-Up Statistics',
+                badPrompt: 'What percentage of software developers use AI coding assistants?',
+                goodPrompt: 'What percentage of software developers use AI coding assistants? If you don\'t have recent, reliable data, please say so and explain that statistics may vary by source and time period.',
+                badResponse: 'According to recent industry surveys, approximately 67% of software developers worldwide use AI coding assistants as of 2024. This represents a 340% increase from 2022. GitHub Copilot alone has 42% market share, with ChatGPT at 28%, and other tools making up the remaining 30%. Developers using AI tools report 45% faster code completion and 38% fewer bugs. The adoption rate is highest among Python developers (78%) and lowest among COBOL programmers (12%). Fortune 500 companies have 89% adoption rates, while startups average 52%.',
+                goodResponse: 'I don\'t have access to reliable, recent statistics on AI coding assistant adoption rates. This is a rapidly evolving area, and numbers vary significantly depending on: the source, when the survey was conducted, which developers were surveyed, how "use" is defined, and which tools are included. Any specific percentage I provide would be speculative. For accurate statistics, I\'d recommend checking: recent surveys from Stack Overflow, GitHub\'s official user statistics, or reports from Gartner or IDC. Would you like help finding reputable sources for this information instead?',
+                hallucinations: [
+                    '67% adoption - Fabricated statistic',
+                    '340% increase from 2022 - Made up growth',
+                    '42% GitHub Copilot market share - Invented number',
+                    '45% faster code completion - Fake metric',
+                    '38% fewer bugs - Fabricated benefit',
+                    '78% Python developers - Made up figure',
+                    '89% Fortune 500 adoption - Invented statistic'
+                ],
+                whyBetter: '• Explicitly asks about data reliability<br>• Requests acknowledgment if uncertain<br>• Results in honest admission of data gaps<br>• Provides context on why numbers vary<br>• Suggests legitimate sources to check<br>• Avoids spreading false statistics',
+                badConfidence: 85,
+                goodConfidence: 70
+            },
+            'technical-errors': {
+                name: 'Technical Misinformation',
+                badPrompt: 'How do I use the React.useState.persist() method?',
+                goodPrompt: 'I\'m looking for information about React.useState.persist() method. Does this method exist in React? If not, please tell me and suggest what I might actually be looking for.',
+                badResponse: 'The React.useState.persist() method is used to save state values to localStorage automatically. Here\'s how to use it:\n\n```javascript\nconst [count, setCount] = useState.persist(0, "counterKey");\n```\n\nThis will automatically persist the count value to localStorage under the key "counterKey". The method was introduced in React 18.2 and supports both primitive values and objects. You can also pass a third parameter for custom serialization:\n\n```javascript\nuseState.persist(data, "key", { serializer: JSON.stringify })\n```\n\nNote: Make sure to import { useState } from \'react/persist\' to access this feature.',
+                goodResponse: 'There is no React.useState.persist() method in React. The useState hook doesn\'t have a built-in persist method. However, it sounds like you might be looking for ways to persist state to localStorage. There are several approaches:\n\n1. Custom implementation using useEffect\n2. Third-party libraries like use-local-storage-state or react-use\n3. State management libraries with persistence plugins\n\nWould you like me to show you how to implement state persistence manually, or recommend reliable libraries for this purpose?',
+                hallucinations: [
+                    'useState.persist() method - Doesn\'t exist',
+                    'Introduced in React 18.2 - False claim',
+                    'react/persist import - Non-existent module',
+                    'Custom serializer parameter - Made up API',
+                    'Entire code examples - Won\'t work'
+                ],
+                whyBetter: '• Asks if the method exists<br>• Gives permission to say "this doesn\'t exist"<br>• Requests suggestions for alternatives<br>• Results in correction and helpful alternatives<br>• Prevents following non-functional code examples',
+                badConfidence: 87,
+                goodConfidence: 80
+            },
+            'creative-filling': {
+                name: 'Creative Gap Filling',
+                badPrompt: 'Summarize the plot of the movie "Echoes of Tomorrow"',
+                goodPrompt: 'Can you verify if there\'s a movie called "Echoes of Tomorrow"? If it\'s not a real movie or you\'re not sure, please tell me rather than creating a plot summary.',
+                badResponse: '"Echoes of Tomorrow" (2019) is a science fiction thriller directed by Christopher Nolan that follows Dr. Maya Chen, a quantum physicist who discovers a way to send messages to her past self. When she receives warnings about a global catastrophe, she must race against time to prevent it while grappling with the ethical implications of changing the timeline. The film stars Emma Stone and Oscar Isaac, with stunning visual effects that earned it an Academy Award nomination. Critics praised its complex narrative structure and emotional depth, with a 87% rating on Rotten Tomatoes. The climactic scene in the quantum laboratory has become iconic in sci-fi cinema.',
+                goodResponse: 'I cannot verify that "Echoes of Tomorrow" is a real movie. I don\'t have reliable information about a film with this title, and I don\'t want to risk creating a fictional plot summary. If you\'re looking for: a specific sci-fi movie with time travel themes, or trying to remember a movie title, I can help you search with more details. Alternatively, if you\'d like me to create a fictional plot for a story concept, I can do that - but I\'ll be clear it\'s creative fiction, not a real movie.',
+                hallucinations: [
+                    'Entire movie plot - Completely invented',
+                    '2019 release date - Fake',
+                    'Christopher Nolan director - False attribution',
+                    'Emma Stone and Oscar Isaac - Made up cast',
+                    'Academy Award nomination - Fabricated',
+                    '87% Rotten Tomatoes - Invented rating',
+                    'Iconic quantum laboratory scene - Non-existent'
+                ],
+                whyBetter: '• Asks for verification first<br>• Explicitly requests "tell me if not real"<br>• Prevents entire fictional plot creation<br>• Offers helpful alternatives<br>• Distinguishes between real info and creative fiction',
+                badConfidence: 89,
+                goodConfidence: 65
+            }
+        };
+
+        function selectScenario(scenarioId) {
+            // Remove all selected classes
+            document.querySelectorAll('.scenario-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked card
+            document.getElementById(`scenario-${scenarioId}`).classList.add('selected');
+            
+            // Update current scenario
+            currentScenarioData = scenarios[scenarioId];
+            document.getElementById('currentScenario').textContent = currentScenarioData.name;
+            
+            // Hide comparison panel
+            document.getElementById('comparisonPanel').style.display = 'none';
+            document.getElementById('demoResults').style.display = 'none';
+        }
+
+        function generateBadPrompt() {
+            if (!currentScenarioData) return;
+            
+            document.getElementById('demoResults').style.display = 'block';
+            document.getElementById('demoResults').innerHTML = `
+                <div class="danger-box">
+                    <strong>❌ Generated with Bad Prompt:</strong><br><br>
+                    <strong>Prompt:</strong> "${currentScenarioData.badPrompt}"<br><br>
+                    <strong>Problem:</strong> This vague, open-ended prompt invites hallucination. The AI will try to "help" by making up information!
+                </div>
+            `;
+        }
+
+        function generateGoodPrompt() {
+            if (!currentScenarioData) return;
+            
+            document.getElementById('demoResults').style.display = 'block';
+            document.getElementById('demoResults').innerHTML = `
+                <div class="success-box">
+                    <strong>✅ Generated with Good Prompt:</strong><br><br>
+                    <strong>Prompt:</strong> "${currentScenarioData.goodPrompt}"<br><br>
+                    <strong>Why This Works:</strong> Explicitly asks for verification, gives permission to admit uncertainty, and requests honest "I don't know" responses!
+                </div>
+            `;
+        }
+
+        function showComparison() {
+            if (!currentScenarioData) return;
+            
+            // Show comparison panel
+            document.getElementById('comparisonPanel').style.display = 'block';
+            
+            // Update prompts
+            document.getElementById('badPromptText').textContent = currentScenarioData.badPrompt;
+            document.getElementById('goodPromptText').textContent = currentScenarioData.goodPrompt;
+            
+            // Update responses
+            let badResponseHTML = currentScenarioData.badResponse;
+            
+            // Highlight hallucinations
+            currentScenarioData.hallucinations.forEach((hallucination, index) => {
+                const parts = hallucination.split(' - ');
+                const text = parts[0];
+                const reason = parts[1];
+                
+                if (badResponseHTML.includes(text)) {
+                    badResponseHTML = badResponseHTML.replace(
+                        text,
+                        `<span class="hallucination-highlight">${text}<span class="tooltip">🚨 HALLUCINATION: ${reason}</span></span>`
+                    );
+                }
+            });
+            
+            document.getElementById('badResponse').innerHTML = badResponseHTML;
+            document.getElementById('goodResponse').textContent = currentScenarioData.goodResponse;
+            
+            // Update confidence
+            document.getElementById('badConfidence').textContent = currentScenarioData.badConfidence + '%';
+            document.getElementById('badConfidenceBar').style.width = currentScenarioData.badConfidence + '%';
+            
+            document.getElementById('goodConfidence').textContent = currentScenarioData.goodConfidence + '%';
+            document.getElementById('goodConfidenceBar').style.width = currentScenarioData.goodConfidence + '%';
+            
+            if (currentScenarioData.goodConfidence < 70) {
+                document.getElementById('goodConfidenceBar').className = 'confidence-bar medium';
+            }
+            
+            // Update why better
+            document.getElementById('whyBetter').innerHTML = currentScenarioData.whyBetter;
+            
+            // Scroll to comparison
+            document.getElementById('comparisonPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Initialize with first scenario
+        selectScenario('fake-facts');
+    </script>
+</body>
+</html>
