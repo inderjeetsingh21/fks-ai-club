@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Training Simulator - Learn How AI Models Learn</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .panel h2 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            border-bottom: 3px solid #1e3c72;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section h3 {
+            color: #7e22ce;
+            margin-bottom: 12px;
+            font-size: 1.2em;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            color: #1976D2;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .dataset-area {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .dataset-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #2196F3;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .dataset-item img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .dataset-item-content {
+            flex: 1;
+        }
+
+        .dataset-item-label {
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 5px;
+        }
+
+        .dataset-item-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #1e3c72;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #152a52;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .training-visualization {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 400px;
+        }
+
+        .neural-network {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 30px 0;
+            position: relative;
+        }
+
+        .layer {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .layer-label {
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        .neuron {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .neuron.active {
+            animation: pulse 1s infinite;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #1e3c72;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-trend {
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .metric-trend.up {
+            color: #28a745;
+        }
+
+        .metric-trend.down {
+            color: #dc3545;
+        }
+
+        .training-log {
+            background: #2d2d2d;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .test-area {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .test-input-group {
+            margin-bottom: 15px;
+        }
+
+        .test-input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .test-input-group input,
+        .test-input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .test-input-group input:focus,
+        .test-input-group select:focus {
+            outline: none;
+            border-color: #1e3c72;
+        }
+
+        .prediction-result {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #28a745;
+        }
+
+        .prediction-result h4 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        .prediction-confidence {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .stage-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .stage {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background: #e0e0e0;
+            border-radius: 8px;
+            position: relative;
+            margin: 0 5px;
+            transition: all 0.3s;
+        }
+
+        .stage.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .stage.completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .stage-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: white;
+            color: #333;
+            border-radius: 50%;
+            line-height: 30px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .stage.active .stage-number,
+        .stage.completed .stage-number {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .dataset-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .dataset-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .dataset-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .dataset-card.selected {
+            border-color: #1e3c72;
+            background: #e3f2fd;
+        }
+
+        .dataset-card h4 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        .dataset-card p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .dataset-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .dataset-stat {
+            text-align: center;
+        }
+
+        .dataset-stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .dataset-stat-label {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .comparison-table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .comparison-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        @media (max-width: 1400px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .emoji-icon {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 AI Training Simulator</h1>
+            <p>Learn How AI Models Are Trained and Fine-Tuned - Step by Step</p>
+        </div>
+
+        <!-- Stage Indicator -->
+        <div class="panel">
+            <div class="stage-indicator">
+                <div class="stage" id="stage1">
+                    <div class="stage-number">1</div>
+                    <div>Choose Dataset</div>
+                </div>
+                <div class="stage" id="stage2">
+                    <div class="stage-number">2</div>
+                    <div>Train Model</div>
+                </div>
+                <div class="stage" id="stage3">
+                    <div class="stage-number">3</div>
+                    <div>Test & Evaluate</div>
+                </div>
+                <div class="stage" id="stage4">
+                    <div class="stage-number">4</div>
+                    <div>Fine-Tune</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Left Panel: Dataset & Configuration -->
+            <div class="panel">
+                <h2><span class="emoji-icon">📊</span> Step 1: Choose Your Dataset</h2>
+                
+                <div class="info-box">
+                    <strong>🎯 What is a Dataset?</strong><br>
+                    A dataset is a collection of examples that teach the AI. Like how you learned math by solving many problems, AI learns by seeing many examples!
+                </div>
+
+                <div class="dataset-selector">
+                    <div class="dataset-card" onclick="selectDataset('sentiment')">
+                        <h4>😊 Sentiment Analysis</h4>
+                        <p>Teach AI to understand if text is positive, negative, or neutral</p>
+                        <div class="dataset-stats">
+                            <div class="dataset-stat">
+                                <div class="dataset-stat-value">1000</div>
+                                <div class="dataset-stat-label">Examples</div>
+                            </div>
+                            <div class="dataset-stat">
+                                <div class="dataset-stat-value">3</div>
+                                <div class="dataset-stat-label">Classes</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dataset-card" onclick="selectDataset('animals')">
+                        <h4>🐱 Animal Classifier</h4>
+                        <p>Teach AI to recognize different animals from descriptions</p>
+                        <div class="dataset-stats">
+                            <div class="dataset-stat">
+                                <div class="dataset-stat-value">800</div>
+                                <div class="dataset-stat-label">Examples</div>
+                            </div>
+                            <div class="dataset-stat">
+                                <div class="dataset-stat-value">5</div>
+                                <div class="dataset-stat-label">Classes</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dataset-card" onclick="selectDataset('spam')">
+                        <h4>📧 Spam Detector</h4>
+                        <p>Teach AI to identify spam vs real messages</p>
+                        <div class="dataset-stats">
+                            <div class="dataset-stat">
+                                <div class="dataset-stat-value">1200</div>
+                                <div class="dataset-stat-label">Examples</div>
+                            </div>
+                            <div class="dataset-stat">
+                                <div class="dataset-stat-value">2</div>
+                                <div class="dataset-stat-label">Classes</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dataset-card" onclick="selectDataset('language')">
+                        <h4>🌍 Language Detector</h4>
+                        <p>Teach AI to recognize different languages</p>
+                        <div class="dataset-stats">
+                            <div class="dataset-stat">
+                                <div class="dataset-stat-value">600</div>
+                                <div class="dataset-stat-label">Examples</div>
+                            </div>
+                            <div class="dataset-stat">
+                                <div class="dataset-stat-value">4</div>
+                                <div class="dataset-stat-label">Classes</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📝 Sample Training Data</h3>
+                    <div id="sampleData" class="dataset-area">
+                        <p style="text-align: center; color: #666;">Select a dataset above to see examples</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>⚙️ Training Configuration</h3>
+                    <div class="test-input-group">
+                        <label>Learning Rate (How fast AI learns)</label>
+                        <input type="range" id="learningRate" min="0.001" max="0.1" step="0.001" value="0.01" oninput="updateLearningRate()">
+                        <div style="text-align: center; color: #666; margin-top: 5px;">
+                            <span id="learningRateValue">0.01</span> - <span id="learningRateDesc">Balanced</span>
+                        </div>
+                    </div>
+
+                    <div class="test-input-group">
+                        <label>Training Epochs (How many times to learn)</label>
+                        <input type="range" id="epochs" min="5" max="50" step="5" value="20" oninput="updateEpochs()">
+                        <div style="text-align: center; color: #666; margin-top: 5px;">
+                            <span id="epochsValue">20</span> passes through data
+                        </div>
+                    </div>
+
+                    <div class="test-input-group">
+                        <label>Batch Size (Examples per training step)</label>
+                        <select id="batchSize">
+                            <option value="16">16 - Fast but less accurate</option>
+                            <option value="32" selected>32 - Balanced</option>
+                            <option value="64">64 - Slow but more accurate</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Panel: Training Visualization -->
+            <div class="panel">
+                <h2><span class="emoji-icon">🎓</span> Step 2: Train Your Model</h2>
+
+                <div class="info-box">
+                    <strong>🧠 What is Training?</strong><br>
+                    Training is when the AI looks at examples and adjusts its internal "brain" (neural network) to get better at predictions. It's like practicing a skill over and over!
+                </div>
+
+                <div class="training-visualization">
+                    <h3 style="text-align: center; color: #1e3c72; margin-bottom: 20px;">Neural Network</h3>
+                    
+                    <div class="neural-network">
+                        <div class="layer">
+                            <div class="layer-label">Input Layer</div>
+                            <div class="neuron">IN</div>
+                            <div class="neuron">IN</div>
+                            <div class="neuron">IN</div>
+                        </div>
+                        
+                        <div style="flex: 0.5; text-align: center; color: #666;">
+                            →<br>learns<br>patterns<br>→
+                        </div>
+                        
+                        <div class="layer">
+                            <div class="layer-label">Hidden Layers</div>
+                            <div class="neuron">H</div>
+                            <div class="neuron">H</div>
+                            <div class="neuron">H</div>
+                            <div class="neuron">H</div>
+                        </div>
+                        
+                        <div style="flex: 0.5; text-align: center; color: #666;">
+                            →<br>makes<br>decision<br>→
+                        </div>
+                        
+                        <div class="layer">
+                            <div class="layer-label">Output Layer</div>
+                            <div class="neuron">OUT</div>
+                            <div class="neuron">OUT</div>
+                        </div>
+                    </div>
+
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Training Progress</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progressBar" style="width: 0%;">Ready to train</div>
+                        </div>
+                    </div>
+
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Model Accuracy</span>
+                            <span id="accuracyPercent">0%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="accuracyBar" style="width: 0%; background: linear-gradient(90deg, #28a745 0%, #20c997 100%);">Not trained yet</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-success" onclick="startTraining()" id="trainBtn" disabled>
+                        🚀 Start Training
+                    </button>
+                    <button class="btn btn-warning" onclick="pauseTraining()" id="pauseBtn" disabled>
+                        ⏸️ Pause
+                    </button>
+                    <button class="btn btn-danger" onclick="resetTraining()">
+                        🔄 Reset
+                    </button>
+                </div>
+
+                <div class="training-log" id="trainingLog">
+                    <div class="log-entry">>> System ready. Select a dataset to begin...</div>
+                </div>
+
+                <div class="section">
+                    <div class="warning-box">
+                        <strong>💡 What's Happening During Training?</strong><br>
+                        1. The AI looks at examples from your dataset<br>
+                        2. It makes predictions<br>
+                        3. It checks if predictions are correct<br>
+                        4. It adjusts its "brain" to do better next time<br>
+                        5. This repeats thousands of times!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Testing & Metrics -->
+            <div class="panel">
+                <h2><span class="emoji-icon">🧪</span> Step 3: Test Your Model</h2>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Accuracy</div>
+                        <div class="metric-value" id="metricAccuracy">0%</div>
+                        <div class="metric-trend" id="accuracyTrend">Not trained</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Loss</div>
+                        <div class="metric-value" id="metricLoss">-</div>
+                        <div class="metric-trend" id="lossTrend">Not trained</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Training Time</div>
+                        <div class="metric-value" id="metricTime">0s</div>
+                        <div class="metric-trend">Total duration</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Examples Seen</div>
+                        <div class="metric-value" id="metricExamples">0</div>
+                        <div class="metric-trend">Training samples</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>🎯 Test Your Trained Model</h3>
+                    <div class="test-area">
+                        <div class="test-input-group">
+                            <label>Enter test input:</label>
+                            <input type="text" id="testInput" placeholder="Type something to test..." disabled>
+                        </div>
+                        <button class="btn btn-primary" onclick="testModel()" id="testBtn" disabled>
+                            🔍 Predict
+                        </button>
+                        
+                        <div id="predictionResult" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="success-box">
+                        <strong>✅ Model Evaluation Metrics Explained:</strong><br><br>
+                        <strong>Accuracy:</strong> % of correct predictions (higher is better)<br>
+                        <strong>Loss:</strong> How "wrong" the model is (lower is better)<br>
+                        <strong>Overfitting:</strong> When the model memorizes instead of learning patterns
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Panel: Fine-Tuning -->
+        <div class="panel">
+            <h2><span class="emoji-icon">🎨</span> Step 4: Fine-Tuning Your Model</h2>
+            
+            <div class="main-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="section">
+                    <div class="info-box">
+                        <strong>🎯 What is Fine-Tuning?</strong><br>
+                        Fine-tuning is when you take a trained model and make it even better by:
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Training it on MORE examples</li>
+                            <li>Training it on SPECIFIC examples where it makes mistakes</li>
+                            <li>Adjusting learning parameters</li>
+                            <li>Adding new categories or skills</li>
+                        </ul>
+                    </div>
+
+                    <h3>🔧 Fine-Tuning Options</h3>
+                    
+                    <div class="button-group" style="flex-direction: column;">
+                        <button class="btn btn-primary" onclick="fineTuneMore()" id="fineTuneBtn1" disabled>
+                            📚 Train on More Data (+500 examples)
+                        </button>
+                        <button class="btn btn-primary" onclick="fineTuneHard()" id="fineTuneBtn2" disabled>
+                            💪 Focus on Difficult Examples
+                        </button>
+                        <button class="btn btn-primary" onclick="fineTuneCategory()" id="fineTuneBtn3" disabled>
+                            ➕ Add New Category
+                        </button>
+                        <button class="btn btn-primary" onclick="adjustParameters()" id="fineTuneBtn4" disabled>
+                            ⚙️ Optimize Parameters
+                        </button>
+                    </div>
+
+                    <div class="warning-box" style="margin-top: 20px;">
+                        <strong>⚠️ Common Pitfalls:</strong><br>
+                        • Over-training can make your model WORSE<br>
+                        • Too much fine-tuning = overfitting<br>
+                        • Always test after fine-tuning!
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📊 Before vs After Fine-Tuning</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Before</th>
+                                <th>After</th>
+                                <th>Change</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTable">
+                            <tr>
+                                <td>Accuracy</td>
+                                <td id="beforeAccuracy">-</td>
+                                <td id="afterAccuracy">-</td>
+                                <td id="changeAccuracy">-</td>
+                            </tr>
+                            <tr>
+                                <td>Loss</td>
+                                <td id="beforeLoss">-</td>
+                                <td id="afterLoss">-</td>
+                                <td id="changeLoss">-</td>
+                            </tr>
+                            <tr>
+                                <td>Training Examples</td>
+                                <td id="beforeExamples">-</td>
+                                <td id="afterExamples">-</td>
+                                <td id="changeExamples">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="success-box" style="margin-top: 20px;">
+                        <strong>🎓 Key Learning Points:</strong><br><br>
+                        <strong>Pre-Training:</strong> Training from scratch on a large dataset<br>
+                        <strong>Fine-Tuning:</strong> Adjusting a trained model for specific tasks<br>
+                        <strong>Transfer Learning:</strong> Using knowledge from one task for another<br>
+                        <strong>Hyperparameters:</strong> Settings that control how the model learns
+                    </div>
+
+                    <div id="fineTuneResults" style="display: none; margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Concepts Panel -->
+        <div class="panel">
+            <h2>🎓 Advanced Concepts Explained</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+                <div class="section">
+                    <h3>🧮 What Happens During Training?</h3>
+                    <div class="info-box">
+                        <strong>Forward Pass:</strong> Data flows through the network to make a prediction<br>
+                        <strong>Loss Calculation:</strong> Compare prediction vs actual answer<br>
+                        <strong>Backward Pass:</strong> Adjust weights to reduce errors<br>
+                        <strong>Repeat:</strong> Do this millions of times!
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📈 Learning Rate Explained</h3>
+                    <div class="info-box">
+                        <strong>Too High:</strong> Model learns fast but might miss the optimal solution (like taking giant steps)<br>
+                        <strong>Too Low:</strong> Very precise but takes forever (like tiny baby steps)<br>
+                        <strong>Just Right:</strong> Balanced learning speed and accuracy
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>🔄 Epochs & Batches</h3>
+                    <div class="info-box">
+                        <strong>Epoch:</strong> One complete pass through ALL training data<br>
+                        <strong>Batch:</strong> A small group of examples processed together<br>
+                        <strong>Why batches?</strong> More efficient and helps the model generalize better
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>🎯 Overfitting vs Underfitting</h3>
+                    <div class="info-box">
+                        <strong>Overfitting:</strong> Model memorizes training data but fails on new data (like memorizing answers without understanding)<br>
+                        <strong>Underfitting:</strong> Model is too simple and can't learn patterns (like using a ruler to draw a circle)<br>
+                        <strong>Goal:</strong> Find the sweet spot in between!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let modelState = {
+            selectedDataset: null,
+            isTrained: false,
+            isTraining: false,
+            currentStage: 1,
+            accuracy: 0,
+            loss: 1.0,
+            trainingTime: 0,
+            examplesSeen: 0,
+            beforeFineTune: {},
+            datasets: {
+                sentiment: {
+                    name: 'Sentiment Analysis',
+                    examples: [
+                        { text: 'I love this product! Amazing quality!', label: 'Positive' },
+                        { text: 'Terrible experience, very disappointed', label: 'Negative' },
+                        { text: 'It\'s okay, nothing special', label: 'Neutral' },
+                        { text: 'Best purchase ever! Highly recommend!', label: 'Positive' },
+                        { text: 'Waste of money, poor quality', label: 'Negative' }
+                    ],
+                    totalExamples: 1000,
+                    classes: ['Positive', 'Negative', 'Neutral']
+                },
+                animals: {
+                    name: 'Animal Classifier',
+                    examples: [
+                        { text: 'Small furry pet that meows and purrs', label: 'Cat' },
+                        { text: 'Loyal companion that barks and wags tail', label: 'Dog' },
+                        { text: 'Large gray animal with trunk and tusks', label: 'Elephant' },
+                        { text: 'Striped animal that looks like a horse', label: 'Zebra' },
+                        { text: 'King of the jungle with big mane', label: 'Lion' }
+                    ],
+                    totalExamples: 800,
+                    classes: ['Cat', 'Dog', 'Elephant', 'Zebra', 'Lion']
+                },
+                spam: {
+                    name: 'Spam Detector',
+                    examples: [
+                        { text: 'URGENT: You won a million dollars! Click here now!', label: 'Spam' },
+                        { text: 'Hey, are we still meeting for lunch tomorrow?', label: 'Not Spam' },
+                        { text: 'FREE MONEY!!! Limited time offer!!!', label: 'Spam' },
+                        { text: 'Your package will arrive on Friday', label: 'Not Spam' },
+                        { text: 'Click here for amazing weight loss pills', label: 'Spam' }
+                    ],
+                    totalExamples: 1200,
+                    classes: ['Spam', 'Not Spam']
+                },
+                language: {
+                    name: 'Language Detector',
+                    examples: [
+                        { text: 'Hello, how are you today?', label: 'English' },
+                        { text: 'Bonjour, comment allez-vous?', label: 'French' },
+                        { text: 'Hola, ¿cómo estás?', label: 'Spanish' },
+                        { text: 'Guten Tag, wie geht es Ihnen?', label: 'German' },
+                        { text: 'Good morning everyone!', label: 'English' }
+                    ],
+                    totalExamples: 600,
+                    classes: ['English', 'French', 'Spanish', 'German']
+                }
+            }
+        };
+
+        function selectDataset(datasetType) {
+            // Remove previous selection
+            document.querySelectorAll('.dataset-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Select new dataset
+            event.target.closest('.dataset-card').classList.add('selected');
+            modelState.selectedDataset = datasetType;
+            
+            // Show sample data
+            const dataset = modelState.datasets[datasetType];
+            const sampleHTML = dataset.examples.map(example => `
+                <div class="dataset-item">
+                    <div class="dataset-item-content">
+                        <div class="dataset-item-label">Label: ${example.label}</div>
+                        <div class="dataset-item-text">"${example.text}"</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('sampleData').innerHTML = sampleHTML;
+            
+            // Enable training button
+            document.getElementById('trainBtn').disabled = false;
+            
+            // Update stage
+            updateStage(1);
+            
+            // Add log entry
+            addLog(`Dataset selected: ${dataset.name} (${dataset.totalExamples} examples, ${dataset.classes.length} classes)`);
+        }
+
+        function updateStage(stageNum) {
+            modelState.currentStage = stageNum;
+            
+            for (let i = 1; i <= 4; i++) {
+                const stage = document.getElementById(`stage${i}`);
+                stage.classList.remove('active', 'completed');
+                
+                if (i < stageNum) {
+                    stage.classList.add('completed');
+                } else if (i === stageNum) {
+                    stage.classList.add('active');
+                }
+            }
+        }
+
+        function updateLearningRate() {
+            const value = document.getElementById('learningRate').value;
+            document.getElementById('learningRateValue').textContent = value;
+            
+            let desc = 'Balanced';
+            if (value < 0.005) desc = 'Very Slow';
+            else if (value < 0.01) desc = 'Slow';
+            else if (value > 0.05) desc = 'Very Fast';
+            else if (value > 0.02) desc = 'Fast';
+            
+            document.getElementById('learningRateDesc').textContent = desc;
+        }
+
+        function updateEpochs() {
+            const value = document.getElementById('epochs').value;
+            document.getElementById('epochsValue').textContent = value;
+        }
+
+        function addLog(message) {
+            const log = document.getElementById('trainingLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `>> ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function startTraining() {
+            if (!modelState.selectedDataset) {
+                alert('Please select a dataset first!');
+                return;
+            }
+
+            modelState.isTraining = true;
+            document.getElementById('trainBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            
+            updateStage(2);
+            addLog('Starting training process...');
+            
+            const epochs = parseInt(document.getElementById('epochs').value);
+            const learningRate = parseFloat(document.getElementById('learningRate').value);
+            const batchSize = parseInt(document.getElementById('batchSize').value);
+            
+            const dataset = modelState.datasets[modelState.selectedDataset];
+            const totalSteps = Math.ceil(dataset.totalExamples / batchSize) * epochs;
+            
+            addLog(`Configuration: ${epochs} epochs, LR=${learningRate}, Batch=${batchSize}`);
+            addLog(`Total training steps: ${totalSteps}`);
+            
+            const startTime = Date.now();
+            
+            // Simulate training
+            for (let epoch = 0; epoch < epochs; epoch++) {
+                if (!modelState.isTraining) break;
+                
+                const stepsInEpoch = Math.ceil(dataset.totalExamples / batchSize);
+                
+                for (let step = 0; step < stepsInEpoch; step++) {
+                    if (!modelState.isTraining) break;
+                    
+                    // Update progress
+                    const progress = ((epoch * stepsInEpoch + step) / totalSteps) * 100;
+                    document.getElementById('progressBar').style.width = progress + '%';
+                    document.getElementById('progressBar').textContent = `Epoch ${epoch + 1}/${epochs}`;
+                    document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+                    
+                    // Simulate accuracy improvement
+                    modelState.accuracy = Math.min(95, 30 + (progress / 100) * 65 + Math.random() * 5);
+                    modelState.loss = Math.max(0.05, 1.0 - (progress / 100) * 0.9 - Math.random() * 0.05);
+                    modelState.examplesSeen += batchSize;
+                    
+                    // Update accuracy bar
+                    document.getElementById('accuracyBar').style.width = modelState.accuracy + '%';
+                    document.getElementById('accuracyBar').textContent = Math.round(modelState.accuracy) + '%';
+                    document.getElementById('accuracyPercent').textContent = Math.round(modelState.accuracy) + '%';
+                    
+                    // Update metrics
+                    document.getElementById('metricAccuracy').textContent = Math.round(modelState.accuracy) + '%';
+                    document.getElementById('metricLoss').textContent = modelState.loss.toFixed(3);
+                    document.getElementById('metricExamples').textContent = modelState.examplesSeen;
+                    
+                    // Activate neurons randomly
+                    document.querySelectorAll('.neuron').forEach(neuron => {
+                        if (Math.random() > 0.7) {
+                            neuron.classList.add('active');
+                            setTimeout(() => neuron.classList.remove('active'), 300);
+                        }
+                    });
+                    
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+                
+                if (epoch % 5 === 0 || epoch === epochs - 1) {
+                    addLog(`Epoch ${epoch + 1}/${epochs} - Accuracy: ${Math.round(modelState.accuracy)}% - Loss: ${modelState.loss.toFixed(3)}`);
+                }
+            }
+            
+            if (modelState.isTraining) {
+                modelState.trainingTime = Math.round((Date.now() - startTime) / 1000);
+                document.getElementById('metricTime').textContent = modelState.trainingTime + 's';
+                
+                modelState.isTrained = true;
+                addLog('Training completed successfully! ✅');
+                addLog(`Final Accuracy: ${Math.round(modelState.accuracy)}%`);
+                
+                // Update trends
+                document.getElementById('accuracyTrend').innerHTML = '📈 Good performance';
+                document.getElementById('accuracyTrend').className = 'metric-trend up';
+                document.getElementById('lossTrend').innerHTML = '📉 Converged well';
+                document.getElementById('lossTrend').className = 'metric-trend up';
+                
+                // Enable testing
+                document.getElementById('testInput').disabled = false;
+                document.getElementById('testBtn').disabled = false;
+                
+                // Enable fine-tuning
+                document.getElementById('fineTuneBtn1').disabled = false;
+                document.getElementById('fineTuneBtn2').disabled = false;
+                document.getElementById('fineTuneBtn3').disabled = false;
+                document.getElementById('fineTuneBtn4').disabled = false;
+                
+                // Save before fine-tune state
+                modelState.beforeFineTune = {
+                    accuracy: modelState.accuracy,
+                    loss: modelState.loss,
+                    examples: modelState.examplesSeen
+                };
+                
+                updateStage(3);
+            }
+            
+            modelState.isTraining = false;
+            document.getElementById('pauseBtn').disabled = true;
+        }
+
+        function pauseTraining() {
+            modelState.isTraining = false;
+            document.getElementById('trainBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            addLog('Training paused by user');
+        }
+
+        function resetTraining() {
+            modelState.isTraining = false;
+            modelState.isTrained = false;
+            modelState.accuracy = 0;
+            modelState.loss = 1.0;
+            modelState.examplesSeen = 0;
+            modelState.trainingTime = 0;
+            
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressBar').textContent = 'Ready to train';
+            document.getElementById('progressPercent').textContent = '0%';
+            document.getElementById('accuracyBar').style.width = '0%';
+            document.getElementById('accuracyBar').textContent = 'Not trained yet';
+            document.getElementById('accuracyPercent').textContent = '0%';
+            
+            document.getElementById('metricAccuracy').textContent = '0%';
+            document.getElementById('metricLoss').textContent = '-';
+            document.getElementById('metricTime').textContent = '0s';
+            document.getElementById('metricExamples').textContent = '0';
+            
+            document.getElementById('accuracyTrend').innerHTML = 'Not trained';
+            document.getElementById('accuracyTrend').className = 'metric-trend';
+            document.getElementById('lossTrend').innerHTML = 'Not trained';
+            document.getElementById('lossTrend').className = 'metric-trend';
+            
+            document.getElementById('testInput').disabled = true;
+            document.getElementById('testBtn').disabled = true;
+            document.getElementById('predictionResult').style.display = 'none';
+            
+            document.getElementById('pauseBtn').disabled = true;
+            
+            if (modelState.selectedDataset) {
+                document.getElementById('trainBtn').disabled = false;
+            }
+            
+            addLog('Training reset. Ready to start again.');
+        }
+
+        function testModel() {
+            const input = document.getElementById('testInput').value.trim();
+            
+            if (!input) {
+                alert('Please enter some text to test!');
+                return;
+            }
+            
+            if (!modelState.isTrained) {
+                alert('Please train the model first!');
+                return;
+            }
+            
+            const dataset = modelState.datasets[modelState.selectedDataset];
+            
+            // Intelligent prediction based on keyword matching (how real AI works!)
+            const prediction = predictFromTrainingData(input, dataset);
+            
+            const resultHTML = `
+                <div class="prediction-result">
+                    <h4>🎯 Prediction Result</h4>
+                    <div style="font-size: 1.3em; color: #1e3c72; margin: 15px 0;">
+                        <strong>Predicted: ${prediction.predictedClass}</strong>
+                    </div>
+                    <div class="prediction-confidence">
+                        <span>Confidence:</span>
+                        <strong style="color: ${prediction.confidence > 0.7 ? '#28a745' : '#ffc107'};">${(prediction.confidence * 100).toFixed(1)}%</strong>
+                    </div>
+                    <div style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 6px; font-size: 14px;">
+                        <strong>How the model decided:</strong><br>
+                        ${prediction.explanation}
+                    </div>
+                    ${prediction.matchedKeywords.length > 0 ? `
+                    <div style="margin-top: 15px; padding: 12px; background: #e3f2fd; border-radius: 6px; font-size: 14px;">
+                        <strong>🔍 Matched Keywords:</strong> ${prediction.matchedKeywords.join(', ')}<br>
+                        <strong>📚 Best Training Match:</strong> "${prediction.bestMatch}"
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            document.getElementById('predictionResult').innerHTML = resultHTML;
+            document.getElementById('predictionResult').style.display = 'block';
+            
+            addLog(`Prediction made: "${input}" → ${prediction.predictedClass} (${(prediction.confidence * 100).toFixed(1)}% confidence)`);
+        }
+
+        // NEW FUNCTION: Intelligent prediction that matches input to training data
+        function predictFromTrainingData(input, dataset) {
+            const inputLower = input.toLowerCase();
+            const inputWords = inputLower.split(/\s+/).filter(w => w.length > 2); // Only words 3+ chars
+            
+            let bestMatch = null;
+            let bestScore = 0;
+            let bestExample = null;
+            let matchedKeywords = [];
+            
+            // Compare input against each training example
+            dataset.examples.forEach(example => {
+                const exampleLower = example.text.toLowerCase();
+                const exampleWords = exampleLower.split(/\s+/);
+                
+                // Calculate similarity score based on matching words
+                let score = 0;
+                let keywords = [];
+                
+                inputWords.forEach(word => {
+                    if (exampleWords.includes(word)) {
+                        score += 1;
+                        keywords.push(word);
+                    }
+                });
+                
+                // Bonus for partial matches (e.g., "furry" in "furry pet")
+                exampleWords.forEach(exampleWord => {
+                    if (exampleWord.length > 3) {
+                        inputWords.forEach(inputWord => {
+                            if (inputWord.includes(exampleWord) || exampleWord.includes(inputWord)) {
+                                if (!keywords.includes(exampleWord) && !keywords.includes(inputWord)) {
+                                    score += 0.5;
+                                    keywords.push(inputWord);
+                                }
+                            }
+                        });
+                    }
+                });
+                
+                // Normalize score by number of words
+                const normalizedScore = score / Math.max(inputWords.length, exampleWords.length);
+                
+                if (normalizedScore > bestScore) {
+                    bestScore = normalizedScore;
+                    bestMatch = example.label;
+                    bestExample = example.text;
+                    matchedKeywords = keywords;
+                }
+            });
+            
+            // Calculate confidence based on match quality
+            let confidence;
+            let explanation;
+            
+            if (bestScore > 0.5) {
+                confidence = 0.75 + (bestScore * 0.2); // 75-95% for good matches
+                explanation = `The neural network found strong keyword matches with the "${bestMatch}" training examples. The input shares key patterns with: "${bestExample}"`;
+            } else if (bestScore > 0.2) {
+                confidence = 0.55 + (bestScore * 0.3); // 55-75% for moderate matches
+                explanation = `The neural network found some similarities with "${bestMatch}" examples, but the match is not very strong. More training data might improve accuracy.`;
+            } else {
+                // Low confidence - pick most common class or random
+                bestMatch = bestMatch || dataset.classes[0];
+                confidence = 0.3 + Math.random() * 0.2; // 30-50% for poor matches
+                explanation = `The neural network couldn't find strong patterns matching the training data. The model is guessing based on limited information. Consider providing input that's more similar to the training examples.`;
+                matchedKeywords = [];
+            }
+            
+            return {
+                predictedClass: bestMatch,
+                confidence: confidence,
+                explanation: explanation,
+                bestMatch: bestExample || 'No strong match found',
+                matchedKeywords: matchedKeywords
+            };
+        }
+
+        async function fineTuneMore() {
+            addLog('Starting fine-tuning with additional data...');
+            updateStage(4);
+            
+            const beforeAcc = modelState.accuracy;
+            const beforeLoss = modelState.loss;
+            
+            // Simulate fine-tuning
+            for (let i = 0; i < 20; i++) {
+                modelState.accuracy = Math.min(98, modelState.accuracy + Math.random() * 0.3);
+                modelState.loss = Math.max(0.02, modelState.loss - Math.random() * 0.02);
+                
+                document.getElementById('metricAccuracy').textContent = Math.round(modelState.accuracy) + '%';
+                document.getElementById('metricLoss').textContent = modelState.loss.toFixed(3);
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            modelState.examplesSeen += 500;
+            document.getElementById('metricExamples').textContent = modelState.examplesSeen;
+            
+            showFineTuneComparison(beforeAcc, beforeLoss, 500);
+            addLog(`Fine-tuning complete! Accuracy improved from ${Math.round(beforeAcc)}% to ${Math.round(modelState.accuracy)}%`);
+        }
+
+        async function fineTuneHard() {
+            addLog('Focusing on difficult examples...');
+            updateStage(4);
+            
+            const beforeAcc = modelState.accuracy;
+            const beforeLoss = modelState.loss;
+            
+            for (let i = 0; i < 15; i++) {
+                modelState.accuracy = Math.min(97, modelState.accuracy + Math.random() * 0.5);
+                modelState.loss = Math.max(0.03, modelState.loss - Math.random() * 0.03);
+                
+                document.getElementById('metricAccuracy').textContent = Math.round(modelState.accuracy) + '%';
+                document.getElementById('metricLoss').textContent = modelState.loss.toFixed(3);
+                
+                await new Promise(resolve => setTimeout(resolve, 120));
+            }
+            
+            modelState.examplesSeen += 200;
+            document.getElementById('metricExamples').textContent = modelState.examplesSeen;
+            
+            showFineTuneComparison(beforeAcc, beforeLoss, 200);
+            addLog(`Difficult examples mastered! Model is now more robust.`);
+        }
+
+        async function fineTuneCategory() {
+            addLog('Adding new category to the model...');
+            updateStage(4);
+            
+            const beforeAcc = modelState.accuracy;
+            const beforeLoss = modelState.loss;
+            
+            modelState.accuracy -= 5; // Temporary drop
+            
+            for (let i = 0; i < 25; i++) {
+                modelState.accuracy = Math.min(96, modelState.accuracy + Math.random() * 0.4);
+                modelState.loss = Math.max(0.04, modelState.loss - Math.random() * 0.015);
+                
+                document.getElementById('metricAccuracy').textContent = Math.round(modelState.accuracy) + '%';
+                document.getElementById('metricLoss').textContent = modelState.loss.toFixed(3);
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            modelState.examplesSeen += 300;
+            document.getElementById('metricExamples').textContent = modelState.examplesSeen;
+            
+            showFineTuneComparison(beforeAcc, beforeLoss, 300);
+            addLog(`New category added successfully! Model can now recognize more classes.`);
+        }
+
+        async function adjustParameters() {
+            addLog('Optimizing hyperparameters...');
+            updateStage(4);
+            
+            const beforeAcc = modelState.accuracy;
+            const beforeLoss = modelState.loss;
+            
+            for (let i = 0; i < 10; i++) {
+                modelState.accuracy = Math.min(99, modelState.accuracy + Math.random() * 0.2);
+                modelState.loss = Math.max(0.01, modelState.loss - Math.random() * 0.025);
+                
+                document.getElementById('metricAccuracy').textContent = Math.round(modelState.accuracy) + '%';
+                document.getElementById('metricLoss').textContent = modelState.loss.toFixed(3);
+                
+                await new Promise(resolve => setTimeout(resolve, 150));
+            }
+            
+            showFineTuneComparison(beforeAcc, beforeLoss, 0);
+            addLog(`Parameters optimized! Model performance improved.`);
+        }
+
+        function showFineTuneComparison(beforeAcc, beforeLoss, addedExamples) {
+            document.getElementById('beforeAccuracy').textContent = Math.round(beforeAcc) + '%';
+            document.getElementById('afterAccuracy').textContent = Math.round(modelState.accuracy) + '%';
+            document.getElementById('changeAccuracy').textContent = '+' + (modelState.accuracy - beforeAcc).toFixed(1) + '%';
+            document.getElementById('changeAccuracy').style.color = '#28a745';
+            
+            document.getElementById('beforeLoss').textContent = beforeLoss.toFixed(3);
+            document.getElementById('afterLoss').textContent = modelState.loss.toFixed(3);
+            document.getElementById('changeLoss').textContent = (modelState.loss - beforeLoss).toFixed(3);
+            document.getElementById('changeLoss').style.color = '#28a745';
+            
+            document.getElementById('beforeExamples').textContent = modelState.examplesSeen - addedExamples;
+            document.getElementById('afterExamples').textContent = modelState.examplesSeen;
+            if (addedExamples > 0) {
+                document.getElementById('changeExamples').textContent = '+' + addedExamples;
+                document.getElementById('changeExamples').style.color = '#28a745';
+            } else {
+                document.getElementById('changeExamples').textContent = 'Same';
+            }
+        }
+
+        // Initialize
+        addLog('Welcome to AI Training Simulator!');
+        addLog('Select a dataset from the left panel to begin.');
+    </script>
+</body>
+</html>

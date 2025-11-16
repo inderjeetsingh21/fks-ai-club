@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Math - Inside AI's Brain</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #141e30 0%, #243b55 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+
+        .header p {
+            font-size: 1.5em;
+            opacity: 0.95;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            margin-bottom: 20px;
+        }
+
+        .panel h2 {
+            color: #243b55;
+            margin-bottom: 20px;
+            font-size: 2em;
+            border-bottom: 3px solid #243b55;
+            padding-bottom: 12px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .network-canvas {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            min-height: 600px;
+            position: relative;
+        }
+
+        .layer-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 500px;
+            position: relative;
+        }
+
+        .layer {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            height: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .neuron {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .neuron:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .neuron.active {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 0.8s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .neuron-value {
+            font-size: 0.75em;
+        }
+
+        .connection {
+            position: absolute;
+            height: 2px;
+            background: #ccc;
+            transform-origin: left center;
+            transition: all 0.3s;
+            z-index: 1;
+        }
+
+        .connection.active {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 3px;
+            animation: flow 1s ease-in-out;
+        }
+
+        @keyframes flow {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+
+        .math-display {
+            background: #2d2d2d;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .math-step {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 255, 0, 0.05);
+            border-left: 3px solid #00ff00;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .math-step .step-title {
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .math-step .step-formula {
+            color: #00ffff;
+            margin: 5px 0;
+        }
+
+        .math-step .step-result {
+            color: #ff69b4;
+            margin-top: 5px;
+        }
+
+        .matrix-display {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .matrix-table {
+            border-collapse: collapse;
+        }
+
+        .matrix-table td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-weight: bold;
+            color: #243b55;
+            min-width: 50px;
+        }
+
+        .matrix-table td.highlight {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+        }
+
+        .matrix-label {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            color: #243b55;
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        .input-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .input-section input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .input-section input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 5px solid #2196F3;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+
+        .info-box strong {
+            color: #1565C0;
+            font-size: 1.1em;
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-left: 5px solid #28a745;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .example-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .example-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .example-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .example-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+        }
+
+        .example-card h4 {
+            color: #243b55;
+            margin-bottom: 10px;
+        }
+
+        .activation-viz {
+            margin: 20px 0;
+        }
+
+        .activation-graph {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        canvas {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .layer-info {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 5px solid #667eea;
+        }
+
+        .layer-info h4 {
+            color: #243b55;
+            margin-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .computation-steps {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .step-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #667eea;
+        }
+
+        .step-item h4 {
+            color: #243b55;
+            margin-bottom: 10px;
+        }
+
+        .weight-matrix-viz {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin: 15px 0;
+        }
+
+        .weight-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .weight-cell.positive {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .weight-cell.negative {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        @media (max-width: 1400px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .example-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .formula-display {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Times New Roman', serif;
+            font-size: 1.2em;
+            text-align: center;
+            border: 2px solid #667eea;
+        }
+
+        .gradient-viz {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .gradient-bar {
+            flex: 1;
+            height: 40px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gradient-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, #ff0000 0%, #ffff00 50%, #00ff00 100%);
+        }
+
+        .gradient-marker {
+            position: absolute;
+            top: -10px;
+            width: 4px;
+            height: 60px;
+            background: #000;
+            transition: left 0.5s ease;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧮 Neural Network Mathematics</h1>
+            <p>See the Actual Calculations Inside AI's Brain</p>
+        </div>
+
+        <!-- Example Selector -->
+        <div class="panel">
+            <h2>📚 Choose a Learning Example</h2>
+            
+            <div class="example-selector">
+                <div class="example-card selected" onclick="selectExample('simple')" id="ex-simple">
+                    <h4>🎯 Simple Classification</h4>
+                    <p>Input: [0.5, 0.8]<br>Task: Classify into 2 categories<br>Network: 2→3→2</p>
+                </div>
+                <div class="example-card" onclick="selectExample('sentiment')" id="ex-sentiment">
+                    <h4>😊 Sentiment Analysis</h4>
+                    <p>Input: "I love this!"<br>Task: Positive/Negative<br>Network: 4→6→3→2</p>
+                </div>
+                <div class="example-card" onclick="selectExample('image')" id="ex-image">
+                    <h4>🖼️ Image Recognition</h4>
+                    <p>Input: 28×28 pixel image<br>Task: Digit 0-9<br>Network: 784→128→10</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>🎓 What You'll Learn:</strong><br>
+                • How inputs flow through layers (Forward Propagation)<br>
+                • Matrix multiplication and dot products<br>
+                • Activation functions (ReLU, Sigmoid, Softmax)<br>
+                • How weights and biases transform data<br>
+                • Real mathematical calculations step-by-step
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid-2">
+            <!-- Left: Neural Network Visualization -->
+            <div class="panel">
+                <h2>🕸️ Neural Network Architecture</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Input Layer</div>
+                        <div class="stat-value" id="stat-input">2</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Hidden Layers</div>
+                        <div class="stat-value" id="stat-hidden">1</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Output Layer</div>
+                        <div class="stat-value" id="stat-output">2</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Total Params</div>
+                        <div class="stat-value" id="stat-params">15</div>
+                    </div>
+                </div>
+
+                <div class="network-canvas" id="networkCanvas">
+                    <div class="layer-container" id="layerContainer">
+                        <!-- Network will be drawn here by JavaScript -->
+                    </div>
+                </div>
+
+                <button class="btn-primary" onclick="runForwardPass()" id="runBtn">
+                    ▶️ Run Forward Pass
+                </button>
+
+                <div class="warning-box">
+                    <strong>💡 Tip:</strong> Click on any neuron to see its detailed calculation! Watch how data flows from left (input) to right (output).
+                </div>
+            </div>
+
+            <!-- Right: Mathematical Calculations -->
+            <div class="panel">
+                <h2>📊 Step-by-Step Calculations</h2>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('forward')">Forward Pass</button>
+                    <button class="tab" onclick="switchTab('matrices')">Weight Matrices</button>
+                    <button class="tab" onclick="switchTab('activations')">Activations</button>
+                </div>
+
+                <!-- Forward Pass Tab -->
+                <div class="tab-content active" id="tab-forward">
+                    <div class="math-display" id="mathDisplay">
+                        <div style="color: #ffd700; text-align: center; margin-bottom: 20px;">
+                            >>> Waiting to run forward pass...
+                        </div>
+                        <div style="color: #00ffff;">
+                            Click "Run Forward Pass" to see all calculations!
+                        </div>
+                    </div>
+
+                    <div class="layer-info">
+                        <h4>📈 Current Layer Output:</h4>
+                        <div id="layerOutput">Ready to compute...</div>
+                    </div>
+                </div>
+
+                <!-- Weight Matrices Tab -->
+                <div class="tab-content" id="tab-matrices">
+                    <div class="info-box">
+                        <strong>What are Weights?</strong><br>
+                        Weights are numbers that determine how strongly one neuron connects to another. During training, AI adjusts these weights to learn patterns!
+                    </div>
+
+                    <div id="weightMatricesDisplay">
+                        <!-- Weight matrices will be displayed here -->
+                    </div>
+                </div>
+
+                <!-- Activations Tab -->
+                <div class="tab-content" id="tab-activations">
+                    <div class="info-box">
+                        <strong>What are Activation Functions?</strong><br>
+                        Activation functions add non-linearity to the network. Without them, multiple layers would just be linear transformations, and the network couldn't learn complex patterns!
+                    </div>
+
+                    <div class="activation-viz">
+                        <h4>Common Activation Functions:</h4>
+                        
+                        <div class="activation-graph">
+                            <h4 style="color: #667eea;">ReLU (Rectified Linear Unit)</h4>
+                            <canvas id="reluCanvas" width="400" height="200"></canvas>
+                            <p style="margin-top: 10px; color: #666;">
+                                <strong>Formula:</strong> f(x) = max(0, x)<br>
+                                <strong>Use:</strong> Most common in hidden layers. Fast and simple!
+                            </p>
+                        </div>
+
+                        <div class="activation-graph">
+                            <h4 style="color: #667eea;">Sigmoid</h4>
+                            <canvas id="sigmoidCanvas" width="400" height="200"></canvas>
+                            <p style="margin-top: 10px; color: #666;">
+                                <strong>Formula:</strong> f(x) = 1 / (1 + e^(-x))<br>
+                                <strong>Use:</strong> Output layer for binary classification (0 to 1)
+                            </p>
+                        </div>
+
+                        <div class="activation-graph">
+                            <h4 style="color: #667eea;">Softmax (for final layer)</h4>
+                            <p style="margin-top: 10px; color: #666;">
+                                <strong>Formula:</strong> f(x_i) = e^(x_i) / Σ(e^(x_j))<br>
+                                <strong>Use:</strong> Converts scores to probabilities that sum to 1
+                            </p>
+                            <div id="softmaxExample"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Explanation Panel -->
+        <div class="panel">
+            <h2>🔬 Deep Dive: What Just Happened?</h2>
+            
+            <div class="computation-steps" id="detailedSteps">
+                <div class="step-item">
+                    <h4>Step 1: Input Layer</h4>
+                    <p>Your input values enter the network. These could be pixel values, word embeddings, or any numerical data.</p>
+                </div>
+
+                <div class="step-item">
+                    <h4>Step 2: First Hidden Layer Calculation</h4>
+                    <p><strong>For each neuron in hidden layer:</strong></p>
+                    <div class="formula-display">
+                        z = (w₁×x₁) + (w₂×x₂) + ... + (wₙ×xₙ) + bias
+                    </div>
+                    <p>Then apply activation function: <strong>a = ReLU(z) = max(0, z)</strong></p>
+                </div>
+
+                <div class="step-item">
+                    <h4>Step 3: Additional Hidden Layers (if any)</h4>
+                    <p>Output from previous layer becomes input to next layer. Same process: multiply by weights, add bias, apply activation.</p>
+                </div>
+
+                <div class="step-item">
+                    <h4>Step 4: Output Layer</h4>
+                    <p>Final layer uses Softmax to convert scores into probabilities. Each output represents confidence for each class.</p>
+                    <div class="formula-display">
+                        P(class_i) = e^(z_i) / Σ(e^(z_j))
+                    </div>
+                </div>
+
+                <div class="step-item">
+                    <h4>Step 5: Prediction</h4>
+                    <p>The class with the highest probability is the network's prediction!</p>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <strong>🎉 Key Takeaway:</strong><br>
+                Neural networks are just MATH! They multiply inputs by weights, add biases, apply activation functions, and repeat across layers. The "magic" is in learning the right weights through training!
+            </div>
+        </div>
+
+        <!-- Mathematical Deep Dive -->
+        <div class="panel">
+            <h2>🧪 The Complete Mathematics</h2>
+            
+            <div class="grid-2">
+                <div>
+                    <h3 style="color: #243b55; margin-bottom: 15px;">1. Forward Propagation</h3>
+                    <div class="formula-display">
+                        Layer 1: <strong>a⁽¹⁾ = σ(W⁽¹⁾ × X + b⁽¹⁾)</strong>
+                    </div>
+                    <div class="formula-display">
+                        Layer 2: <strong>a⁽²⁾ = σ(W⁽²⁾ × a⁽¹⁾ + b⁽²⁾)</strong>
+                    </div>
+                    <div class="formula-display">
+                        Output: <strong>ŷ = softmax(a⁽²⁾)</strong>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>Symbols Explained:</strong><br>
+                        • <strong>W</strong> = Weight matrix<br>
+                        • <strong>b</strong> = Bias vector<br>
+                        • <strong>X</strong> = Input<br>
+                        • <strong>a</strong> = Activation (output after activation function)<br>
+                        • <strong>σ</strong> = Activation function (ReLU, sigmoid, etc.)<br>
+                        • <strong>ŷ</strong> = Predicted output
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="color: #243b55; margin-bottom: 15px;">2. Loss Calculation</h3>
+                    <div class="formula-display">
+                        <strong>Loss = -Σ(y × log(ŷ))</strong>
+                    </div>
+                    <p style="margin: 15px 0; line-height: 1.8;">
+                        This is Cross-Entropy Loss. It measures how wrong the prediction is. Lower loss = better prediction!
+                    </p>
+
+                    <h3 style="color: #243b55; margin: 25px 0 15px 0;">3. Backpropagation (Training)</h3>
+                    <div class="formula-display">
+                        <strong>∂Loss/∂W = ∂Loss/∂a × ∂a/∂z × ∂z/∂W</strong>
+                    </div>
+                    <p style="margin: 15px 0; line-height: 1.8;">
+                        Using chain rule, we calculate how to adjust each weight to reduce loss. This is gradient descent!
+                    </p>
+
+                    <h3 style="color: #243b55; margin: 25px 0 15px 0;">4. Weight Update</h3>
+                    <div class="formula-display">
+                        <strong>W_new = W_old - α × ∂Loss/∂W</strong>
+                    </div>
+                    <p style="margin: 15px 0; line-height: 1.8;">
+                        α (alpha) is the learning rate. We adjust weights in the direction that reduces loss.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentExample = 'simple';
+        let network = {};
+        let isRunning = false;
+
+        const examples = {
+            simple: {
+                name: 'Simple Classification',
+                input: [0.5, 0.8],
+                layers: [2, 3, 2],
+                weights: [
+                    // Layer 1: 2x3
+                    [[0.5, -0.3, 0.7], [0.2, 0.6, -0.4]],
+                    // Layer 2: 3x2
+                    [[0.8, -0.5], [0.3, 0.4], [-0.6, 0.9]]
+                ],
+                biases: [
+                    [0.1, -0.2, 0.3],
+                    [0.2, -0.1]
+                ],
+                labels: ['Class A', 'Class B']
+            },
+            sentiment: {
+                name: 'Sentiment Analysis',
+                input: [0.2, 0.9, 0.7, 0.3], // Representing "I love this!"
+                layers: [4, 6, 3, 2],
+                weights: [
+                    // Layer 1: 4x6
+                    [[0.3, -0.2, 0.5, 0.1, 0.4, -0.3],
+                     [0.7, 0.3, -0.4, 0.6, 0.2, 0.5],
+                     [-0.2, 0.8, 0.3, -0.5, 0.7, 0.1],
+                     [0.4, -0.3, 0.6, 0.2, -0.4, 0.8]],
+                    // Layer 2: 6x3
+                    [[0.5, 0.3, -0.4],
+                     [-0.3, 0.7, 0.2],
+                     [0.6, -0.2, 0.5],
+                     [0.2, 0.5, -0.3],
+                     [-0.4, 0.3, 0.6],
+                     [0.7, -0.5, 0.2]],
+                    // Layer 3: 3x2
+                    [[0.8, -0.3], [0.4, 0.7], [-0.5, 0.6]]
+                ],
+                biases: [
+                    [0.1, -0.2, 0.15, -0.1, 0.25, 0.05],
+                    [0.2, -0.15, 0.1],
+                    [0.3, -0.2]
+                ],
+                labels: ['Negative', 'Positive']
+            },
+            image: {
+                name: 'Image Recognition',
+                input: Array(16).fill(0).map(() => Math.random()), // Simplified 4x4 instead of 28x28
+                layers: [16, 8, 10],
+                weights: [
+                    generateRandomWeights(16, 8),
+                    generateRandomWeights(8, 10)
+                ],
+                biases: [
+                    Array(8).fill(0).map(() => (Math.random() - 0.5) * 0.4),
+                    Array(10).fill(0).map(() => (Math.random() - 0.5) * 0.4)
+                ],
+                labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+            }
+        };
+
+        function generateRandomWeights(rows, cols) {
+            const weights = [];
+            for (let i = 0; i < rows; i++) {
+                weights[i] = [];
+                for (let j = 0; j < cols; j++) {
+                    weights[i][j] = (Math.random() - 0.5) * 1.0;
+                }
+            }
+            return weights;
+        }
+
+        function selectExample(exampleName) {
+            document.querySelectorAll('.example-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.getElementById(`ex-${exampleName}`).classList.add('selected');
+            
+            currentExample = exampleName;
+            network = examples[exampleName];
+            
+            updateStats();
+            drawNetwork();
+            displayWeightMatrices();
+            
+            // Reset display
+            document.getElementById('mathDisplay').innerHTML = `
+                <div style="color: #ffd700; text-align: center; margin-bottom: 20px;">
+                    >>> ${network.name} Network Ready
+                </div>
+                <div style="color: #00ffff;">
+                    Input: [${network.input.map(x => x.toFixed(2)).join(', ')}]<br>
+                    Architecture: ${network.layers.join(' → ')}<br><br>
+                    Click "Run Forward Pass" to see calculations!
+                </div>
+            `;
+        }
+
+        function updateStats() {
+            document.getElementById('stat-input').textContent = network.layers[0];
+            document.getElementById('stat-hidden').textContent = network.layers.length - 2;
+            document.getElementById('stat-output').textContent = network.layers[network.layers.length - 1];
+            
+            let totalParams = 0;
+            for (let i = 0; i < network.weights.length; i++) {
+                const rows = network.weights[i].length;
+                const cols = network.weights[i][0].length;
+                totalParams += rows * cols + cols; // weights + biases
+            }
+            document.getElementById('stat-params').textContent = totalParams;
+        }
+
+        function drawNetwork() {
+            const container = document.getElementById('layerContainer');
+            container.innerHTML = '';
+
+            const layers = network.layers;
+            const maxNeurons = Math.max(...layers);
+            
+            // Draw each layer
+            for (let layerIdx = 0; layerIdx < layers.length; layerIdx++) {
+                const layerDiv = document.createElement('div');
+                layerDiv.className = 'layer';
+                layerDiv.id = `layer-${layerIdx}`;
+                
+                const neuronCount = layers[layerIdx];
+                const spacing = Math.max(80, 500 / neuronCount);
+                
+                // Create neurons
+                for (let neuronIdx = 0; neuronIdx < neuronCount; neuronIdx++) {
+                    const neuron = document.createElement('div');
+                    neuron.className = 'neuron';
+                    neuron.id = `neuron-${layerIdx}-${neuronIdx}`;
+                    neuron.innerHTML = `<div class="neuron-value">0.00</div>`;
+                    neuron.onclick = () => showNeuronDetails(layerIdx, neuronIdx);
+                    layerDiv.appendChild(neuron);
+                }
+                
+                container.appendChild(layerDiv);
+            }
+        }
+
+        function showNeuronDetails(layerIdx, neuronIdx) {
+            alert(`Neuron details:\nLayer: ${layerIdx}\nNeuron: ${neuronIdx}\n\nClick "Run Forward Pass" to see the calculation for this neuron!`);
+        }
+
+        async function runForwardPass() {
+            if (isRunning) return;
+            isRunning = true;
+            document.getElementById('runBtn').disabled = true;
+
+            const mathDisplay = document.getElementById('mathDisplay');
+            mathDisplay.innerHTML = '';
+
+            let activations = [network.input];
+            
+            addMathStep(mathDisplay, 'INPUT LAYER', 
+                `Input values: [${network.input.map(x => x.toFixed(3)).join(', ')}]`,
+                `These are the raw input values entering the network.`
+            );
+
+            // Update input layer neurons
+            await updateNeuronValues(0, network.input);
+            await sleep(1000);
+
+            // Process each layer
+            for (let layerIdx = 0; layerIdx < network.weights.length; layerIdx++) {
+                const W = network.weights[layerIdx];
+                const b = network.biases[layerIdx];
+                const prevActivation = activations[layerIdx];
+                
+                addMathStep(mathDisplay, `LAYER ${layerIdx + 1} → ${layerIdx + 2}`, 
+                    `Computing hidden layer ${layerIdx + 1}...`,
+                    ''
+                );
+
+                const z = [];
+                const a = [];
+
+                // For each neuron in current layer
+                for (let i = 0; i < W[0].length; i++) {
+                    let sum = b[i];
+                    let calculation = `z[${i}] = `;
+                    
+                    // Weighted sum
+                    for (let j = 0; j < W.length; j++) {
+                        sum += W[j][i] * prevActivation[j];
+                        calculation += `(${W[j][i].toFixed(2)} × ${prevActivation[j].toFixed(2)})`;
+                        if (j < W.length - 1) calculation += ' + ';
+                    }
+                    calculation += ` + ${b[i].toFixed(2)} (bias)`;
+                    
+                    z[i] = sum;
+                    
+                    // Apply activation function
+                    if (layerIdx < network.weights.length - 1) {
+                        // ReLU for hidden layers
+                        a[i] = Math.max(0, z[i]);
+                        addMathStep(mathDisplay, `Neuron ${i + 1}`,
+                            calculation,
+                            `z = ${z[i].toFixed(4)}<br>a = ReLU(z) = max(0, ${z[i].toFixed(4)}) = ${a[i].toFixed(4)}`
+                        );
+                    } else {
+                        // Store raw values for softmax
+                        a[i] = z[i];
+                        addMathStep(mathDisplay, `Output Neuron ${i + 1}`,
+                            calculation,
+                            `z = ${z[i].toFixed(4)}`
+                        );
+                    }
+
+                    await sleep(300);
+                }
+
+                // Apply softmax to output layer
+                if (layerIdx === network.weights.length - 1) {
+                    const expSum = a.reduce((sum, val) => sum + Math.exp(val), 0);
+                    for (let i = 0; i < a.length; i++) {
+                        a[i] = Math.exp(a[i]) / expSum;
+                    }
+                    
+                    addMathStep(mathDisplay, 'SOFTMAX ACTIVATION',
+                        `Converting to probabilities...`,
+                        `exp_sum = ${expSum.toFixed(4)}<br>` +
+                        a.map((val, i) => `P(${network.labels[i]}) = ${(val * 100).toFixed(2)}%`).join('<br>')
+                    );
+                }
+
+                activations.push(a);
+                await updateNeuronValues(layerIdx + 1, a);
+                await sleep(1000);
+            }
+
+            // Final prediction
+            const finalOutput = activations[activations.length - 1];
+            const maxIdx = finalOutput.indexOf(Math.max(...finalOutput));
+            
+            addMathStep(mathDisplay, '🎯 FINAL PREDICTION',
+                `Predicted Class: <strong style="color: #ff69b4; font-size: 1.3em;">${network.labels[maxIdx]}</strong>`,
+                `Confidence: ${(finalOutput[maxIdx] * 100).toFixed(2)}%<br><br>` +
+                finalOutput.map((prob, i) => 
+                    `${network.labels[i]}: ${(prob * 100).toFixed(2)}%`
+                ).join('<br>')
+            );
+
+            document.getElementById('layerOutput').innerHTML = `
+                <div style="margin: 15px 0;">
+                    <strong>Final Output Probabilities:</strong><br>
+                    ${finalOutput.map((prob, i) => `
+                        <div style="margin: 10px 0;">
+                            <strong>${network.labels[i]}:</strong> ${(prob * 100).toFixed(2)}%
+                            <div style="height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden;">
+                                <div style="height: 100%; width: ${prob * 100}%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            isRunning = false;
+            document.getElementById('runBtn').disabled = false;
+            
+            // Scroll to bottom
+            mathDisplay.scrollTop = mathDisplay.scrollHeight;
+        }
+
+        function addMathStep(container, title, formula, result) {
+            const step = document.createElement('div');
+            step.className = 'math-step';
+            step.innerHTML = `
+                <div class="step-title">${title}</div>
+                ${formula ? `<div class="step-formula">${formula}</div>` : ''}
+                ${result ? `<div class="step-result">${result}</div>` : ''}
+            `;
+            container.appendChild(step);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function updateNeuronValues(layerIdx, values) {
+            const neurons = document.querySelectorAll(`#layer-${layerIdx} .neuron`);
+            
+            for (let i = 0; i < values.length && i < neurons.length; i++) {
+                neurons[i].classList.add('active');
+                neurons[i].querySelector('.neuron-value').textContent = values[i].toFixed(2);
+                
+                await sleep(100);
+                
+                setTimeout(() => {
+                    neurons[i].classList.remove('active');
+                }, 500);
+            }
+        }
+
+        function displayWeightMatrices() {
+            const container = document.getElementById('weightMatricesDisplay');
+            container.innerHTML = '';
+
+            for (let i = 0; i < network.weights.length; i++) {
+                const W = network.weights[i];
+                const title = document.createElement('h4');
+                title.textContent = `Weight Matrix ${i + 1}: Layer ${i + 1} → Layer ${i + 2}`;
+                title.style.color = '#243b55';
+                title.style.margin = '25px 0 15px 0';
+                container.appendChild(title);
+
+                const matrixDiv = document.createElement('div');
+                matrixDiv.className = 'matrix-display';
+                
+                const table = document.createElement('table');
+                table.className = 'matrix-table';
+                
+                for (let row = 0; row < W.length; row++) {
+                    const tr = document.createElement('tr');
+                    for (let col = 0; col < W[row].length; col++) {
+                        const td = document.createElement('td');
+                        td.textContent = W[row][col].toFixed(2);
+                        if (W[row][col] > 0) {
+                            td.style.background = `rgba(0, 123, 255, ${Math.abs(W[row][col])})`;
+                            td.style.color = Math.abs(W[row][col]) > 0.5 ? 'white' : 'black';
+                        } else {
+                            td.style.background = `rgba(255, 0, 0, ${Math.abs(W[row][col])})`;
+                            td.style.color = Math.abs(W[row][col]) > 0.5 ? 'white' : 'black';
+                        }
+                        tr.appendChild(td);
+                    }
+                    table.appendChild(tr);
+                }
+                
+                matrixDiv.appendChild(table);
+                container.appendChild(matrixDiv);
+
+                const info = document.createElement('p');
+                info.style.margin = '10px 0';
+                info.style.color = '#666';
+                info.innerHTML = `
+                    <strong>Dimensions:</strong> ${W.length} × ${W[0].length}<br>
+                    <strong>Blue cells:</strong> Positive weights (excitatory)<br>
+                    <strong>Red cells:</strong> Negative weights (inhibitory)
+                `;
+                container.appendChild(info);
+            }
+        }
+
+        function drawActivationFunctions() {
+            // Draw ReLU
+            const reluCanvas = document.getElementById('reluCanvas');
+            const reluCtx = reluCanvas.getContext('2d');
+            drawReLU(reluCtx, reluCanvas.width, reluCanvas.height);
+
+            // Draw Sigmoid
+            const sigmoidCanvas = document.getElementById('sigmoidCanvas');
+            const sigmoidCtx = sigmoidCanvas.getContext('2d');
+            drawSigmoid(sigmoidCtx, sigmoidCanvas.width, sigmoidCanvas.height);
+
+            // Display Softmax example
+            displaySoftmaxExample();
+        }
+
+        function drawReLU(ctx, width, height) {
+            ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 3;
+            
+            const centerY = height / 2;
+            const centerX = width / 2;
+            
+            // Draw axes
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, height);
+            ctx.stroke();
+            
+            // Draw ReLU function
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(centerX, centerY);
+            ctx.lineTo(width, 0);
+            ctx.stroke();
+        }
+
+        function drawSigmoid(ctx, width, height) {
+            ctx.clearRect(0, 0, width, height);
+            
+            const centerY = height / 2;
+            const centerX = width / 2;
+            
+            // Draw axes
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, height);
+            ctx.stroke();
+            
+            // Draw sigmoid curve
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            for (let x = 0; x < width; x++) {
+                const inputX = (x - centerX) / (width / 10);
+                const y = 1 / (1 + Math.exp(-inputX));
+                const plotY = height - (y * height);
+                
+                if (x === 0) {
+                    ctx.moveTo(x, plotY);
+                } else {
+                    ctx.lineTo(x, plotY);
+                }
+            }
+            ctx.stroke();
+        }
+
+        function displaySoftmaxExample() {
+            const container = document.getElementById('softmaxExample');
+            const scores = [2.5, 1.3, 0.8];
+            const expScores = scores.map(s => Math.exp(s));
+            const sumExp = expScores.reduce((a, b) => a + b, 0);
+            const probabilities = expScores.map(e => e / sumExp);
+            
+            container.innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 10px; margin-top: 15px;">
+                    <strong>Example:</strong><br>
+                    Input scores: [${scores.join(', ')}]<br><br>
+                    After softmax:<br>
+                    ${probabilities.map((p, i) => `
+                        <div style="margin: 10px 0;">
+                            Class ${i + 1}: ${(p * 100).toFixed(2)}%
+                            <div style="height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden;">
+                                <div style="height: 100%; width: ${p * 100}%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                    <div style="margin-top: 15px; color: #666;">
+                        Notice: All probabilities sum to 100%!
+                    </div>
+                </div>
+            `;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Initialize
+        window.onload = function() {
+            selectExample('simple');
+            drawActivationFunctions();
+        };
+    </script>
+</body>
+</html>

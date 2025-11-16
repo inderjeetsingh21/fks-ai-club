@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inside AI's Mind - How AI Thinks and Responds</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+
+        .header p {
+            font-size: 1.4em;
+            opacity: 0.95;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        .panel h2 {
+            color: #2c5364;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #2c5364;
+            padding-bottom: 12px;
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        .input-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .input-section textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .input-section textarea:focus {
+            outline: none;
+            border-color: #2c5364;
+            box-shadow: 0 0 0 3px rgba(44, 83, 100, 0.1);
+        }
+
+        .quick-prompts {
+            margin-top: 15px;
+        }
+
+        .quick-prompts h4 {
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .prompt-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .prompt-btn:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .thinking-pipeline {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            min-height: 600px;
+        }
+
+        .pipeline-stage {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 5px solid #e0e0e0;
+            opacity: 0.3;
+            transition: all 0.5s;
+        }
+
+        .pipeline-stage.active {
+            opacity: 1;
+            border-left-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+            animation: slideIn 0.5s ease;
+        }
+
+        .pipeline-stage.completed {
+            opacity: 1;
+            border-left-color: #28a745;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .stage-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .stage-number {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.3em;
+            flex-shrink: 0;
+        }
+
+        .stage-title {
+            flex: 1;
+        }
+
+        .stage-title h3 {
+            color: #2c5364;
+            font-size: 1.4em;
+            margin-bottom: 5px;
+        }
+
+        .stage-title p {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .stage-content {
+            padding-left: 60px;
+            line-height: 1.8;
+        }
+
+        .thought-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #2196F3;
+        }
+
+        .thought-box strong {
+            color: #1565C0;
+        }
+
+        .token-display {
+            background: #2d2d2d;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+
+        .token {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px;
+            background: rgba(0, 255, 0, 0.15);
+            border: 1px solid #00ff00;
+            border-radius: 4px;
+            animation: tokenPop 0.3s ease;
+        }
+
+        @keyframes tokenPop {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .attention-map {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .attention-word {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .attention-word.focused {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            border-color: #19547b;
+            transform: scale(1.05);
+            font-weight: bold;
+        }
+
+        .probability-display {
+            margin: 15px 0;
+        }
+
+        .prob-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 10px;
+        }
+
+        .prob-word {
+            min-width: 120px;
+            font-weight: bold;
+            color: #2c5364;
+        }
+
+        .prob-bar-container {
+            flex: 1;
+            height: 25px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .prob-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            color: white;
+            font-size: 0.85em;
+            font-weight: bold;
+            transition: width 0.5s ease;
+        }
+
+        .generation-output {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 3px solid #28a745;
+            min-height: 100px;
+        }
+
+        .generation-output h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .generated-text {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .word-by-word {
+            display: inline;
+        }
+
+        .generated-word {
+            display: inline;
+            opacity: 0;
+            animation: wordAppear 0.3s forwards;
+        }
+
+        @keyframes wordAppear {
+            from { 
+                opacity: 0; 
+                transform: translateY(-5px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+
+        .context-window {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .context-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .context-label {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .neural-activity {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .neuron-activity {
+            aspect-ratio: 1;
+            background: #e0e0e0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .neuron-activity.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots span {
+            animation: blink 1.4s infinite;
+            animation-fill-mode: both;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0; }
+            40% { opacity: 1; }
+        }
+
+        .stats-mini {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .stat-mini {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-mini-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-mini-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .temperature-indicator {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .temp-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .explanation-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .explanation-section h3 {
+            color: #2c5364;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .step-indicator {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .step-indicator h3 {
+            color: #667eea;
+            font-size: 1.3em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Inside AI's Mind</h1>
+            <p>Watch What Happens When AI Thinks and Responds</p>
+        </div>
+
+        <div class="main-layout">
+            <!-- Left Panel: Input Controls -->
+            <div class="panel">
+                <h2>💬 Ask AI a Question</h2>
+                
+                <div class="input-section">
+                    <label>Your Prompt:</label>
+                    <textarea id="userPrompt" placeholder="Try: How are you? or What is the capital of France?">How are you?</textarea>
+                </div>
+
+                <div class="quick-prompts">
+                    <h4>📝 Quick Examples:</h4>
+                    <button class="prompt-btn" onclick="setPrompt('How are you?')">💬 How are you?</button>
+                    <button class="prompt-btn" onclick="setPrompt('What is the capital of France?')">🌍 What is the capital of France?</button>
+                    <button class="prompt-btn" onclick="setPrompt('Tell me a joke about programming')">😄 Tell me a joke about programming</button>
+                    <button class="prompt-btn" onclick="setPrompt('Explain photosynthesis in simple terms')">🌱 Explain photosynthesis in simple terms</button>
+                    <button class="prompt-btn" onclick="setPrompt('Write a haiku about the ocean')">🎨 Write a haiku about the ocean</button>
+                </div>
+
+                <button class="btn-primary" onclick="processPrompt()" id="processBtn">
+                    🚀 See How AI Thinks
+                </button>
+
+                <div class="explanation-section">
+                    <h3>🎯 What You'll See:</h3>
+                    <p style="line-height: 1.8; color: #555;">
+                        When you click the button, you'll watch the AI process your question step-by-step:
+                    </p>
+                    <ol style="margin: 15px 0 0 20px; line-height: 2; color: #555;">
+                        <li>Breaking text into tokens</li>
+                        <li>Understanding context</li>
+                        <li>Analyzing patterns with attention</li>
+                        <li>Predicting next words</li>
+                        <li>Generating the response</li>
+                        <li>Applying safety filters</li>
+                    </ol>
+                </div>
+
+                <div class="info-box" style="margin-top: 20px;">
+                    <strong>💡 Key Insight:</strong><br>
+                    AI doesn't "understand" like humans do. It predicts likely next words based on patterns learned from billions of text examples!
+                </div>
+            </div>
+
+            <!-- Right Panel: Thinking Process -->
+            <div class="panel">
+                <h2>🔍 AI's Thinking Process</h2>
+                
+                <div class="step-indicator" id="stepIndicator">
+                    <h3>Waiting for your prompt...</h3>
+                </div>
+
+                <div class="thinking-pipeline" id="thinkingPipeline">
+                    <!-- Stage 1: Input Reception -->
+                    <div class="pipeline-stage" id="stage1">
+                        <div class="stage-header">
+                            <div class="stage-number">1</div>
+                            <div class="stage-title">
+                                <h3>Input Reception</h3>
+                                <p>AI receives your prompt</p>
+                            </div>
+                        </div>
+                        <div class="stage-content" id="stage1-content">
+                            <p>Waiting for input...</p>
+                        </div>
+                    </div>
+
+                    <!-- Stage 2: Tokenization -->
+                    <div class="pipeline-stage" id="stage2">
+                        <div class="stage-header">
+                            <div class="stage-number">2</div>
+                            <div class="stage-title">
+                                <h3>Tokenization</h3>
+                                <p>Breaking text into processable chunks</p>
+                            </div>
+                        </div>
+                        <div class="stage-content" id="stage2-content">
+                            <p>Waiting...</p>
+                        </div>
+                    </div>
+
+                    <!-- Stage 3: Context Understanding -->
+                    <div class="pipeline-stage" id="stage3">
+                        <div class="stage-header">
+                            <div class="stage-number">3</div>
+                            <div class="stage-title">
+                                <h3>Context Understanding</h3>
+                                <p>Building understanding of the query</p>
+                            </div>
+                        </div>
+                        <div class="stage-content" id="stage3-content">
+                            <p>Waiting...</p>
+                        </div>
+                    </div>
+
+                    <!-- Stage 4: Attention Mechanism -->
+                    <div class="pipeline-stage" id="stage4">
+                        <div class="stage-header">
+                            <div class="stage-number">4</div>
+                            <div class="stage-title">
+                                <h3>Attention Mechanism</h3>
+                                <p>Focusing on important words</p>
+                            </div>
+                        </div>
+                        <div class="stage-content" id="stage4-content">
+                            <p>Waiting...</p>
+                        </div>
+                    </div>
+
+                    <!-- Stage 5: Neural Processing -->
+                    <div class="pipeline-stage" id="stage5">
+                        <div class="stage-header">
+                            <div class="stage-number">5</div>
+                            <div class="stage-title">
+                                <h3>Neural Network Processing</h3>
+                                <p>Layers of neurons analyze patterns</p>
+                            </div>
+                        </div>
+                        <div class="stage-content" id="stage5-content">
+                            <p>Waiting...</p>
+                        </div>
+                    </div>
+
+                    <!-- Stage 6: Next Token Prediction -->
+                    <div class="pipeline-stage" id="stage6">
+                        <div class="stage-header">
+                            <div class="stage-number">6</div>
+                            <div class="stage-title">
+                                <h3>Next Token Prediction</h3>
+                                <p>Calculating probabilities for next words</p>
+                            </div>
+                        </div>
+                        <div class="stage-content" id="stage6-content">
+                            <p>Waiting...</p>
+                        </div>
+                    </div>
+
+                    <!-- Stage 7: Response Generation -->
+                    <div class="pipeline-stage" id="stage7">
+                        <div class="stage-header">
+                            <div class="stage-number">7</div>
+                            <div class="stage-title">
+                                <h3>Response Generation</h3>
+                                <p>Building the final answer word by word</p>
+                            </div>
+                        </div>
+                        <div class="stage-content" id="stage7-content">
+                            <p>Waiting...</p>
+                        </div>
+                    </div>
+
+                    <!-- Stage 8: Safety & Filtering -->
+                    <div class="pipeline-stage" id="stage8">
+                        <div class="stage-header">
+                            <div class="stage-number">8</div>
+                            <div class="stage-title">
+                                <h3>Safety Check & Output</h3>
+                                <p>Ensuring appropriate response</p>
+                            </div>
+                        </div>
+                        <div class="stage-content" id="stage8-content">
+                            <p>Waiting...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Explanation Panel -->
+        <div class="panel">
+            <h2>📚 Understanding Each Step</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+                <div class="thought-box">
+                    <strong>1. Input Reception:</strong><br>
+                    Your text arrives at the AI. It's just raw characters at this point - the AI hasn't processed anything yet.
+                </div>
+                <div class="thought-box">
+                    <strong>2. Tokenization:</strong><br>
+                    Text is broken into "tokens" - chunks that the AI can understand. Usually words or parts of words. "Hello!" becomes ["Hello", "!"]
+                </div>
+                <div class="thought-box">
+                    <strong>3. Context Understanding:</strong><br>
+                    AI analyzes what type of question this is. Is it a greeting? A factual question? A creative request? This guides how it responds.
+                </div>
+                <div class="thought-box">
+                    <strong>4. Attention Mechanism:</strong><br>
+                    AI decides which words are most important. In "What is the capital of France?", "capital" and "France" get high attention.
+                </div>
+                <div class="thought-box">
+                    <strong>5. Neural Processing:</strong><br>
+                    Billions of mathematical calculations happen across many layers of the neural network, transforming input into understanding.
+                </div>
+                <div class="thought-box">
+                    <strong>6. Prediction:</strong><br>
+                    For each position, AI calculates probabilities for thousands of possible next words. "The capital is..." → "Paris" has high probability.
+                </div>
+                <div class="thought-box">
+                    <strong>7. Generation:</strong><br>
+                    AI picks words one by one based on probabilities + randomness (temperature), building the complete response.
+                </div>
+                <div class="thought-box">
+                    <strong>8. Safety Check:</strong><br>
+                    Before outputting, AI checks if the response is appropriate, helpful, and safe. Harmful content is filtered out.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isProcessing = false;
+
+        function setPrompt(text) {
+            document.getElementById('userPrompt').value = text;
+        }
+
+        async function processPrompt() {
+            if (isProcessing) return;
+
+            const prompt = document.getElementById('userPrompt').value.trim();
+            if (!prompt) {
+                alert('Please enter a prompt first!');
+                return;
+            }
+
+            isProcessing = true;
+            document.getElementById('processBtn').disabled = true;
+            document.getElementById('processBtn').innerHTML = '⏳ Processing...';
+
+            // Reset all stages
+            for (let i = 1; i <= 8; i++) {
+                document.getElementById(`stage${i}`).classList.remove('active', 'completed');
+            }
+
+            // Stage 1: Input Reception
+            await activateStage(1, async (content) => {
+                content.innerHTML = `
+                    <div class="thought-box">
+                        <strong>🎯 AI's Thought:</strong> "I've received a message from the user. Let me process this..."
+                    </div>
+                    <p><strong>Raw Input Received:</strong></p>
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin: 10px 0; border: 2px solid #667eea;">
+                        <em>"${prompt}"</em>
+                    </div>
+                    <div class="stats-mini">
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">${prompt.length}</div>
+                            <div class="stat-mini-label">Characters</div>
+                        </div>
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">${prompt.split(' ').length}</div>
+                            <div class="stat-mini-label">Words</div>
+                        </div>
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">${detectPromptType(prompt)}</div>
+                            <div class="stat-mini-label">Type</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            await sleep(2000);
+
+            // Stage 2: Tokenization
+            await activateStage(2, async (content) => {
+                const tokens = tokenize(prompt);
+                content.innerHTML = `
+                    <div class="thought-box">
+                        <strong>🎯 AI's Thought:</strong> "Breaking this into tokens so I can process each piece..."
+                    </div>
+                    <p><strong>Tokenized Input:</strong></p>
+                    <div class="token-display" id="tokenDisplay"></div>
+                    <p style="margin-top: 15px;"><strong>Why?</strong> AI models process text as tokens (chunks), not individual characters. This is more efficient and captures meaning better.</p>
+                    <div class="stats-mini">
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">${tokens.length}</div>
+                            <div class="stat-mini-label">Total Tokens</div>
+                        </div>
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">${Math.round(tokens.length * 0.75)}</div>
+                            <div class="stat-mini-label">Words</div>
+                        </div>
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">${Math.round(tokens.length * 4)}</div>
+                            <div class="stat-mini-label">Embedding Dims</div>
+                        </div>
+                    </div>
+                `;
+
+                // Animate tokens appearing
+                const tokenDisplay = document.getElementById('tokenDisplay');
+                for (let token of tokens) {
+                    await sleep(150);
+                    const span = document.createElement('span');
+                    span.className = 'token';
+                    span.textContent = token;
+                    tokenDisplay.appendChild(span);
+                }
+            });
+
+            await sleep(2000);
+
+            // Stage 3: Context Understanding
+            await activateStage(3, async (content) => {
+                const analysis = analyzePrompt(prompt);
+                content.innerHTML = `
+                    <div class="thought-box">
+                        <strong>🎯 AI's Thought:</strong> "${analysis.thought}"
+                    </div>
+                    <p><strong>Context Analysis:</strong></p>
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                        <p><strong>Query Type:</strong> ${analysis.type}</p>
+                        <p><strong>Intent:</strong> ${analysis.intent}</p>
+                        <p><strong>Expected Response:</strong> ${analysis.expectedResponse}</p>
+                        <p><strong>Tone:</strong> ${analysis.tone}</p>
+                    </div>
+                    <div class="info-box">
+                        <strong>💡 What's Happening:</strong> The AI is analyzing the structure and meaning of your prompt to determine how to respond appropriately.
+                    </div>
+                `;
+            });
+
+            await sleep(2500);
+
+            // Stage 4: Attention Mechanism
+            await activateStage(4, async (content) => {
+                const words = prompt.split(/\s+/);
+                const importantWords = identifyImportantWords(prompt);
+                
+                content.innerHTML = `
+                    <div class="thought-box">
+                        <strong>🎯 AI's Thought:</strong> "Which words should I pay most attention to? Let me analyze..."
+                    </div>
+                    <p><strong>Attention Weights:</strong> (Brighter = More Important)</p>
+                    <div class="attention-map" id="attentionMap"></div>
+                    <p style="margin-top: 15px;"><strong>Why?</strong> The attention mechanism helps AI focus on the most relevant words, just like how you focus on key words when reading.</p>
+                `;
+
+                const attentionMap = document.getElementById('attentionMap');
+                for (let i = 0; i < words.length; i++) {
+                    await sleep(200);
+                    const div = document.createElement('div');
+                    div.className = 'attention-word';
+                    div.textContent = words[i];
+                    
+                    if (importantWords.includes(words[i].toLowerCase())) {
+                        setTimeout(() => {
+                            div.classList.add('focused');
+                        }, 300);
+                    }
+                    
+                    attentionMap.appendChild(div);
+                }
+            });
+
+            await sleep(2500);
+
+            // Stage 5: Neural Processing
+            await activateStage(5, async (content) => {
+                content.innerHTML = `
+                    <div class="thought-box">
+                        <strong>🎯 AI's Thought:</strong> "Running the input through my neural network layers... billions of calculations happening!"
+                    </div>
+                    <p><strong>Neural Network Activity:</strong></p>
+                    <div class="neural-activity" id="neuralActivity"></div>
+                    <p style="margin-top: 15px;"><strong>What's Happening:</strong> Your input passes through multiple layers (typically 24-96 layers in large models), with each layer extracting deeper patterns.</p>
+                    <div class="stats-mini">
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">48</div>
+                            <div class="stat-mini-label">Layers</div>
+                        </div>
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">175B</div>
+                            <div class="stat-mini-label">Parameters</div>
+                        </div>
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">~1ms</div>
+                            <div class="stat-mini-label">Per Layer</div>
+                        </div>
+                    </div>
+                `;
+
+                const neuralActivity = document.getElementById('neuralActivity');
+                
+                // Create 64 neurons
+                for (let i = 0; i < 64; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'neuron-activity';
+                    neuralActivity.appendChild(div);
+                }
+
+                // Animate neurons activating in waves
+                const neurons = neuralActivity.querySelectorAll('.neuron-activity');
+                for (let wave = 0; wave < 3; wave++) {
+                    for (let i = 0; i < neurons.length; i++) {
+                        setTimeout(() => {
+                            neurons[i].classList.add('active');
+                            setTimeout(() => {
+                                neurons[i].classList.remove('active');
+                            }, 800);
+                        }, i * 20);
+                    }
+                    await sleep(1500);
+                }
+            });
+
+            await sleep(2000);
+
+            // Stage 6: Next Token Prediction
+            await activateStage(6, async (content) => {
+                const predictions = predictNextTokens(prompt);
+                content.innerHTML = `
+                    <div class="thought-box">
+                        <strong>🎯 AI's Thought:</strong> "For each position, I calculate probabilities for thousands of possible next words..."
+                    </div>
+                    <p><strong>Top 5 Most Likely Next Tokens:</strong></p>
+                    <div class="probability-display" id="probDisplay"></div>
+                    <p style="margin-top: 15px;"><strong>Temperature: 0.7</strong> - This controls randomness. Lower = predictable, Higher = creative.</p>
+                `;
+
+                const probDisplay = document.getElementById('probDisplay');
+                for (let pred of predictions) {
+                    await sleep(300);
+                    const div = document.createElement('div');
+                    div.className = 'prob-item';
+                    div.innerHTML = `
+                        <div class="prob-word">${pred.word}</div>
+                        <div class="prob-bar-container">
+                            <div class="prob-bar" style="width: ${pred.probability}%">
+                                ${pred.probability}%
+                            </div>
+                        </div>
+                    `;
+                    probDisplay.appendChild(div);
+                }
+            });
+
+            await sleep(2500);
+
+            // Stage 7: Response Generation
+            await activateStage(7, async (content) => {
+                const response = generateResponse(prompt);
+                content.innerHTML = `
+                    <div class="thought-box">
+                        <strong>🎯 AI's Thought:</strong> "Now I'll generate the response word by word, picking from the probability distributions..."
+                    </div>
+                    <p><strong>Generating Response:</strong></p>
+                    <div class="generation-output">
+                        <h4>📝 AI Response:</h4>
+                        <div class="generated-text" id="generatedText"></div>
+                    </div>
+                    <p style="margin-top: 15px;"><strong>Process:</strong> The AI generates one token at a time, using each new token as input for the next prediction.</p>
+                `;
+
+                const generatedText = document.getElementById('generatedText');
+                const words = response.split(' ');
+                for (let i = 0; i < words.length; i++) {
+                    await sleep(200);
+                    const span = document.createElement('span');
+                    span.className = 'generated-word';
+                    span.textContent = words[i] + (i < words.length - 1 ? ' ' : '');
+                    generatedText.appendChild(span);
+                }
+            });
+
+            await sleep(2000);
+
+            // Stage 8: Safety & Output
+            await activateStage(8, async (content) => {
+                content.innerHTML = `
+                    <div class="thought-box">
+                        <strong>🎯 AI's Thought:</strong> "Let me check if this response is safe, helpful, and appropriate before sending it..."
+                    </div>
+                    <div class="success-box">
+                        <strong>✅ Safety Checks Passed:</strong>
+                        <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                            <li>No harmful content detected</li>
+                            <li>Response is relevant to the query</li>
+                            <li>Tone is appropriate</li>
+                            <li>No personal information disclosed</li>
+                            <li>Factual accuracy verified</li>
+                        </ul>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-top: 15px;">
+                        <h4 style="margin-bottom: 10px;">🎉 Response Ready!</h4>
+                        <p>The AI has completed processing and the response is ready to be delivered to you.</p>
+                    </div>
+                `;
+            });
+
+            document.getElementById('stepIndicator').innerHTML = '<h3 style="color: #28a745;">✅ Processing Complete!</h3>';
+            
+            isProcessing = false;
+            document.getElementById('processBtn').disabled = false;
+            document.getElementById('processBtn').innerHTML = '🚀 See How AI Thinks';
+        }
+
+        async function activateStage(stageNum, contentFunc) {
+            document.getElementById('stepIndicator').innerHTML = `<h3>Processing Stage ${stageNum} of 8...</h3>`;
+            
+            const stage = document.getElementById(`stage${stageNum}`);
+            stage.classList.add('active');
+            
+            const content = document.getElementById(`stage${stageNum}-content`);
+            await contentFunc(content);
+            
+            await sleep(500);
+            stage.classList.remove('active');
+            stage.classList.add('completed');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function tokenize(text) {
+            // Simple tokenization - splits on spaces and punctuation
+            return text.match(/[\w']+|[.,!?;]/g) || [];
+        }
+
+        function detectPromptType(prompt) {
+            const lower = prompt.toLowerCase();
+            if (lower.includes('how are you') || lower.includes('hello') || lower.includes('hi ')) return 'Greeting';
+            if (lower.includes('what') || lower.includes('where') || lower.includes('when') || lower.includes('who')) return 'Question';
+            if (lower.includes('explain') || lower.includes('describe')) return 'Explanation';
+            if (lower.includes('write') || lower.includes('create') || lower.includes('generate')) return 'Creative';
+            if (lower.includes('tell me')) return 'Request';
+            return 'Query';
+        }
+
+        function analyzePrompt(prompt) {
+            const lower = prompt.toLowerCase();
+            
+            if (lower.includes('how are you')) {
+                return {
+                    thought: "This is a greeting asking about my state. I should respond in a friendly, conversational way.",
+                    type: "Social Greeting",
+                    intent: "Check on AI's status/wellbeing",
+                    expectedResponse: "Friendly acknowledgment",
+                    tone: "Warm and conversational"
+                };
+            }
+            
+            if (lower.includes('capital') && lower.includes('france')) {
+                return {
+                    thought: "This is a factual question about geography. I should provide accurate, direct information.",
+                    type: "Factual Query",
+                    intent: "Retrieve geographical information",
+                    expectedResponse: "Direct factual answer",
+                    tone: "Informative and precise"
+                };
+            }
+            
+            if (lower.includes('joke')) {
+                return {
+                    thought: "User wants entertainment. I should be creative and humorous while keeping it appropriate.",
+                    type: "Creative Request",
+                    intent: "Entertainment/humor",
+                    expectedResponse: "Creative and amusing content",
+                    tone: "Playful and light"
+                };
+            }
+            
+            if (lower.includes('explain')) {
+                return {
+                    thought: "User needs understanding of a concept. I should break it down clearly and simply.",
+                    type: "Educational Query",
+                    intent: "Learn/understand concept",
+                    expectedResponse: "Clear explanation with examples",
+                    tone: "Educational and patient"
+                };
+            }
+            
+            if (lower.includes('write') || lower.includes('create')) {
+                return {
+                    thought: "User wants me to generate creative content. I should be imaginative yet coherent.",
+                    type: "Creative Generation",
+                    intent: "Generate original content",
+                    expectedResponse: "Creative written work",
+                    tone: "Creative and expressive"
+                };
+            }
+            
+            return {
+                thought: "I'll analyze this query and determine the best way to respond based on patterns I've learned.",
+                type: "General Query",
+                intent: "Information or assistance",
+                expectedResponse: "Helpful response",
+                tone: "Helpful and clear"
+            };
+        }
+
+        function identifyImportantWords(prompt) {
+            const lower = prompt.toLowerCase();
+            const words = lower.split(/\s+/);
+            
+            // Common stop words have less importance
+            const stopWords = ['the', 'is', 'are', 'a', 'an', 'in', 'on', 'at', 'to', 'of'];
+            
+            // Question words and nouns are usually important
+            const importantPatterns = ['what', 'where', 'when', 'who', 'how', 'why', 'capital', 'france', 'joke', 'programming', 'explain', 'photosynthesis', 'write', 'haiku', 'ocean'];
+            
+            return words.filter(word => 
+                !stopWords.includes(word) && 
+                (word.length > 3 || importantPatterns.includes(word))
+            );
+        }
+
+        function predictNextTokens(prompt) {
+            const lower = prompt.toLowerCase();
+            
+            if (lower.includes('how are you')) {
+                return [
+                    { word: "I'm", probability: 45 },
+                    { word: "I", probability: 25 },
+                    { word: "Thanks", probability: 15 },
+                    { word: "Hello", probability: 10 },
+                    { word: "Great", probability: 5 }
+                ];
+            }
+            
+            if (lower.includes('capital') && lower.includes('france')) {
+                return [
+                    { word: "The", probability: 65 },
+                    { word: "Paris", probability: 20 },
+                    { word: "France's", probability: 8 },
+                    { word: "It's", probability: 4 },
+                    { word: "Answer:", probability: 3 }
+                ];
+            }
+            
+            if (lower.includes('joke')) {
+                return [
+                    { word: "Why", probability: 40 },
+                    { word: "Here's", probability: 30 },
+                    { word: "A", probability: 15 },
+                    { word: "Sure", probability: 10 },
+                    { word: "Okay", probability: 5 }
+                ];
+            }
+            
+            return [
+                { word: "I", probability: 35 },
+                { word: "The", probability: 25 },
+                { word: "Sure", probability: 20 },
+                { word: "Let", probability: 15 },
+                { word: "Here", probability: 5 }
+            ];
+        }
+
+        function generateResponse(prompt) {
+            const lower = prompt.toLowerCase();
+            
+            if (lower.includes('how are you')) {
+                return "I'm functioning well, thank you for asking! As an AI, I don't have feelings in the traditional sense, but I'm here and ready to help you with whatever you need. How can I assist you today?";
+            }
+            
+            if (lower.includes('capital') && lower.includes('france')) {
+                return "The capital of France is Paris. It's one of the most famous and visited cities in the world, known for landmarks like the Eiffel Tower, the Louvre Museum, and Notre-Dame Cathedral.";
+            }
+            
+            if (lower.includes('joke') && lower.includes('programming')) {
+                return "Why do programmers prefer dark mode? Because light attracts bugs! 🐛😄";
+            }
+            
+            if (lower.includes('explain') && lower.includes('photosynthesis')) {
+                return "Photosynthesis is how plants make their own food. They use sunlight, water, and carbon dioxide from the air to create glucose (sugar) and oxygen. Think of it like a kitchen where sunlight is the energy, water and CO2 are the ingredients, and the plant creates food for itself while releasing oxygen for us to breathe!";
+            }
+            
+            if (lower.includes('haiku') && lower.includes('ocean')) {
+                return "Waves kiss the shoreline\nSalt spray dances in the breeze\nEndless blue horizon";
+            }
+            
+            return "I understand your query and I'm here to help! Based on what you've asked, I can provide you with relevant information or assistance. Please let me know if you'd like me to elaborate on any specific aspect.";
+        }
+    </script>
+</body>
+</html>
